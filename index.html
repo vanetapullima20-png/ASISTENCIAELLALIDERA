@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ella Lidera - Asistencia</title>
+<style>
+  :root{
+    --dark:#00403a; --teal:#2bd5c4; --light:#c9f2ed; --white:#ffffff;
+    --gray:#f4f6f6; --text:#1c2b29; --red:#c0392b; --green:#1e7d4f;
+  }
+  *{box-sizing:border-box;}
+  body{
+    font-family:'Segoe UI',Arial,sans-serif; margin:0; background:var(--gray); color:var(--text);
+  }
+  header{
+    background:var(--dark); color:var(--white); padding:20px 24px;
+    display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;
+  }
+  header h1{ margin:0; font-size:20px; }
+  header .sub{ font-size:12px; opacity:.85; margin-top:2px; }
+  .container{ max-width:760px; margin:0 auto; padding:20px 16px 60px; }
+  .card{
+    background:var(--white); border-radius:14px; padding:20px; margin-bottom:18px;
+    box-shadow:0 2px 10px rgba(0,0,0,.06);
+  }
+  .card h2{
+    margin:0 0 14px; font-size:16px; color:var(--dark);
+    display:flex; align-items:center; gap:8px;
+  }
+  .badge{
+    display:inline-block; width:24px; height:24px; border-radius:50%;
+    background:var(--teal); color:var(--dark); font-weight:700; font-size:13px;
+    text-align:center; line-height:24px; flex:none;
+  }
+  .sessions-grid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:10px; }
+  .sess-btn{
+    border:2px solid #e0e6e5; background:var(--white); border-radius:10px; padding:12px 10px;
+    text-align:left; cursor:pointer; transition:.15s; font-family:inherit;
+  }
+  .sess-btn:hover:not(:disabled){ border-color:var(--teal); }
+  .sess-btn.active{ border-color:var(--dark); background:var(--light); }
+  .sess-btn:disabled{ opacity:.45; cursor:not-allowed; }
+  .sess-btn .t{ font-weight:700; font-size:13px; color:var(--dark); }
+  .sess-btn .f{ font-size:11px; color:#5a6b68; margin-top:2px; }
+  .sess-btn .tag{ display:inline-block; margin-top:6px; font-size:10px; padding:2px 7px; border-radius:20px; }
+  .tag.open{ background:#d6f5e8; color:var(--green); }
+  .tag.future{ background:#f0f0f0; color:#888; }
+  .tag.closed{ background:#fbe4e1; color:var(--red); }
+  input[type=text],input[type=password],input[type=tel]{
+    width:100%; padding:12px 14px; border-radius:10px; border:2px solid #e0e6e5;
+    font-size:15px; font-family:inherit; margin-bottom:10px;
+  }
+  input:focus{ outline:none; border-color:var(--teal); }
+  label.fld{ font-size:12px; color:#5a6b68; display:block; margin-bottom:4px; }
+  .btn{
+    background:var(--dark); color:var(--white); border:none; padding:12px 20px;
+    border-radius:10px; font-size:14px; font-weight:600; cursor:pointer; font-family:inherit;
+    margin-top:2px;
+  }
+  .btn:hover{ background:#00554c; }
+  .btn.secondary{ background:var(--teal); color:var(--dark); }
+  .btn:disabled{ opacity:.5; cursor:not-allowed; }
+  .result{
+    margin-top:16px; padding:16px; border-radius:10px; background:var(--gray); display:none;
+  }
+  .result.show{ display:block; }
+  .result .name{ font-weight:700; font-size:16px; color:var(--dark); }
+  .result .sede{ font-size:13px; color:#5a6b68; margin-top:3px; }
+  .msg{ margin-top:14px; padding:12px 14px; border-radius:10px; font-size:13px; display:none; }
+  .msg.show{ display:block; }
+  .msg.ok{ background:#d6f5e8; color:var(--green); }
+  .msg.warn{ background:#fff4d6; color:#8a6100; }
+  .msg.err{ background:#fbe4e1; color:var(--red); }
+  .newreg{ margin-top:16px; padding:16px; border-radius:10px; background:#fff8e6; border:1px dashed #e0c069; display:none; }
+  .newreg.show{ display:block; }
+  .newreg .t{ font-weight:700; font-size:13px; color:#8a6100; margin-bottom:10px; }
+  .lock-section{ text-align:center; padding:10px 0; }
+  .lock-section p{ font-size:13px; color:#5a6b68; margin-bottom:14px; }
+  table{ width:100%; border-collapse:collapse; font-size:12px; margin-top:14px; }
+  th,td{ padding:7px 8px; border-bottom:1px solid #eee; text-align:left; white-space:nowrap; }
+  th{ background:var(--dark); color:var(--white); position:sticky; top:0; }
+  td.ok{ color:var(--green); font-weight:700; }
+  td.no{ color:var(--red); }
+  .table-wrap{ max-height:420px; overflow:auto; border-radius:10px; border:1px solid #eee; }
+  .kam-summary{ display:grid; grid-template-columns:repeat(auto-fill,minmax(160px,1fr)); gap:10px; margin-bottom:16px; }
+  .kam-box{ background:var(--gray); border-radius:10px; padding:12px; }
+  .kam-box .n{ font-size:20px; font-weight:800; color:var(--dark); }
+  .kam-box .l{ font-size:11px; color:#5a6b68; }
+  .loading{ text-align:center; padding:30px; color:#888; font-size:13px; }
+  .foot-note{ font-size:11px; color:#8a9793; text-align:center; margin-top:10px; }
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1>Ella Lidera</h1>
+    <div class="sub">Registro de asistencia</div>
+  </div>
+  <div class="sub" id="clock"></div>
+</header>
+
+<div class="container">
+
+  <!-- APARTADO 1: seleccionar sesion -->
+  <div class="card">
+    <h2><span class="badge">1</span> Selecciona la sesión</h2>
+    <div class="sessions-grid" id="sessionsGrid"></div>
+  </div>
+
+  <!-- APARTADO 2: marcar asistencia -->
+  <div class="card">
+    <h2><span class="badge">2</span> Registra tu asistencia</h2>
+    <div id="noSessionMsg" class="msg warn">Selecciona una sesión disponible arriba para poder registrar tu asistencia.</div>
+    <div id="searchBox" style="display:none">
+      <input type="text" id="dniInput" placeholder="Ingresa tu DNI" maxlength="12" inputmode="numeric">
+      <button class="btn" id="buscarBtn">Buscar</button>
+
+      <div class="result" id="resultBox">
+        <div class="name" id="resName"></div>
+        <div class="sede" id="resSede"></div>
+        <button class="btn secondary" id="confirmBtn">Confirmar asistencia</button>
+      </div>
+
+      <div class="newreg" id="newRegBox">
+        <div class="t">No encontramos tu DNI en la lista. Completa tus datos para registrarte:</div>
+        <label class="fld">DNI</label>
+        <input type="text" id="newDni" placeholder="DNI" maxlength="12" inputmode="numeric">
+        <label class="fld">Nombre completo</label>
+        <input type="text" id="newNombre" placeholder="Nombres y apellidos">
+        <label class="fld">Celular</label>
+        <input type="tel" id="newCelular" placeholder="9XXXXXXXX" maxlength="9" inputmode="numeric">
+        <button class="btn secondary" id="newRegBtn">Registrar y confirmar asistencia</button>
+      </div>
+
+      <div class="msg" id="statusMsg"></div>
+    </div>
+  </div>
+
+  <!-- APARTADO 3: solo owner -->
+  <div class="card" id="ownerCard">
+    <h2><span class="badge">3</span> Panel administrador</h2>
+    <div id="loginSection" class="lock-section">
+      <p>Esta sección es solo para la administradora del programa.</p>
+      <input type="text" id="ownerUser" placeholder="Usuario" style="margin-bottom:10px">
+      <input type="password" id="ownerPass" placeholder="Contraseña" style="margin-bottom:10px">
+      <button class="btn" id="loginBtn">Ingresar</button>
+      <div class="msg err" id="loginErr">Usuario o contraseña incorrectos.</div>
+    </div>
+    <div id="adminSection" style="display:none">
+      <div id="adminLoading" class="loading">Cargando datos de asistencia...</div>
+      <div id="adminContent" style="display:none">
+        <div class="kam-summary" id="kamSummary"></div>
+        <button class="btn secondary" id="exportBtn">Descargar Excel (CSV)</button>
+        <button class="btn" id="refreshBtn" style="background:#5a6b68">Actualizar</button>
+        <div class="table-wrap">
+          <table id="fullTable"><thead></thead><tbody></tbody></table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const PARTICIPANTS = [{"d": "003502315", "n": "CANELON AVENDANO, YANEXYS YULIMAR", "k": "Alberto Urteaga", "s": "SOLANA COMERCIAL S.A.C."}, {"d": "004756395", "n": "RAMIREZ RAMIREZ, MARITZA CAROLINA", "k": "Hugo Solano", "s": "MALL PLAZA PERÚ S.A."}, {"d": "03692374", "n": "CORONADO MORALES, RENEE AURORA", "k": "Darío Cedeño", "s": "ISEG PERU S.A.C."}, {"d": "00514408", "n": "ARCAYA CHURA, LOURDES", "k": "Darío Cedeño", "s": "MIFARMA S.A.C."}, {"d": "40855064", "n": "MEZA DE LA ROSA, JENNY", "k": "Otros", "s": "IP024 ISEG PERU - RETENES LIMA"}, {"d": "09901567", "n": "HUIZA AYALA, LESLIE YOLANDA", "k": "Gabriel Lobo", "s": "SUPERMERCADOS PERUANOS S.A"}, {"d": "16794412", "n": "UCEDA CALDERON, PATRICIA YOLANDA", "k": "Alberto Urteaga", "s": "CORPORACION MG S.A.C."}, {"d": "10005880", "n": "CHAVEZ TIMANA DE RODRIGUEZ, CAROL IVONNE", "k": "Darío Cedeño", "s": "CENCOSUD RETAIL PERÚ S.A."}, {"d": "004494352", "n": "MAGO ORTIZ, MAURELY MARGARITA", "k": "Alberto Urteaga", "s": "OPERADORA DE SERVICIOS LOGISTICOS S.A.C."}, {"d": "40622978", "n": "HUAMAN SALAZAR, GISELA DEYSI", "k": "Hugo Solano", "s": "SAGA FALABELLA S A"}, {"d": "21569884", "n": "GRANDA ORTEGA, MONICA FIORELA", "k": "Darío Cedeño", "s": "MAKRO SUPERMAYORISTA S.A"}, {"d": "41025915", "n": "SALINAS QUIROZ, ROSA LUZ", "k": "Darío Cedeño", "s": "BOTICAS IP S.A.C."}, {"d": "09959675", "n": "ALMESTAR MONTES, GLORIA MARIA", "k": "Hugo Solano", "s": "HIPERMERCADOS TOTTUS S.A."}, {"d": "10666847", "n": "ZAQUIRAY RIVERA, VERONICA JANNET", "k": "Hugo Solano", "s": "HIPERMERCADOS TOTTUS S.A."}, {"d": "10631182", "n": "VARGAS TORREJON, CAROL GIULIANA", "k": "Roberto Crisostomo", "s": "FARMACIAS PERUANAS S.A.C."}, {"d": "10090384", "n": "LOPEZ SANCHEZ, YTA MICAELA", "k": "Gabriel Lobo", "s": "SUPERMERCADOS PERUANOS S.A"}, {"d": "40398542", "n": "YARICAHUA CHOTA, IRENE", "k": "Darío Cedeño", "s": "FARMACIAS PERUANAS S.A.C."}, {"d": "40374387", "n": "NOLE MONGE, EVELYN", "k": "Darío Cedeño", "s": "FARMACIAS PERUANAS S.A.C."}, {"d": "40037497", "n": "BOYER LARREA, SARA ALICIA", "k": "Alberto Urteaga", "s": "UNIVERSIDAD PERUANA CAYETANO HEREDIA"}, {"d": "002393975", "n": "MORENO -, LUCYNEL", "k": "Hugo Solano", "s": "SAGA FALABELLA S A"}, {"d": "40590953", "n": "CAVERO SALCEDO, ANGELICA MARIA", "k": "Otros", "s": "ISEG PERU S.A.C."}, {"d": "40917282", "n": "BENDEZU QUISPE, MARIA DEL PILAR", "k": "Gabriel Lobo", "s": "SUPERMERCADOS PERUANOS S.A"}, {"d": "09481904", "n": "CORDOVA MORALES, GLADYS", "k": "Otros", "s": "ISEG PERU S.A.C."}, {"d": "40799562", "n": "PEVES MONZON, ANA MARIA", "k": "Darío Cedeño", "s": "CENCOSUD RETAIL PERÚ S.A."}, {"d": "003643454", "n": "JAUREGUI -, MARIBEL DEL VALLE", "k": "Gabriel Lobo", "s": "SUPERMERCADOS PERUANOS S.A"}, {"d": "40201631", "n": "PASAPERA ARANGO, MONICA VICTORIA", "k": "Otros", "s": "DESARROLLO EDUCATIVO S.A."}, {"d": "47178695", "n": "PANTA PAZOS, KARINA DEL PILAR", "k": "Darío Cedeño", "s": "SUPERMERCADOS PERUANOS S.A"}, {"d": "40437609", "n": "PAREDES ARANGO, MARGARITA PATRICIA", "k": "Roberto Crisostomo", "s": "TIENDAS PERUANAS S.A."}, {"d": "76195091", "n": "FRIAS PASACHE, ESTRELLITA ELIZABETH", "k": "Hugo Solano", "s": "SAGA FALABELLA S A"}, {"d": "70173037", "n": "MALARIN CISNEROS, LEYDI ISABEL", "k": "Alberto Urteaga", "s": "EMUSA PERU S.A.C."}, {"d": "44508535", "n": "JAVE CHAVEZ, MARIA YACENIA", "k": "Hugo Solano", "s": "SAGA FALABELLA S A"}, {"d": "007821760", "n": "SALAZAR RAMOS, ANA MARIA", "k": "Gabriel Lobo", "s": "SUPERMERCADOS PERUANOS S.A"}, {"d": "72351786", "n": "MISARI AYALA, MILAGROS ANGELICA", "k": "Roberto Crisostomo", "s": "TIENDAS PERUANAS S.A."}, {"d": "72386232", "n": "AGUILAR HUAMANI, NURIA KARLA", "k": "Gabriel Lobo", "s": "SUPERMERCADOS PERUANOS S.A"}, {"d": "71260237", "n": "VALENCIA TIPIAN, JESSICA", "k": "Gabriel Lobo", "s": "MAKRO SUPERMAYORISTA S.A"}, {"d": "40169885", "n": "SALCEDO MENDOZA, KETY GIOVANNA", "k": "Darío Cedeño", "s": "CENCOSUD RETAIL PERÚ S.A."}, {"d": "74996446", "n": "LUCERO MALLQUI, LUZ ALEXANDRA", "k": "Gabriel Lobo", "s": "MAKRO SUPERMAYORISTA S.A"}, {"d": "91304888", "n": "PAREDES TORRES, EMILY KELLY", "k": "Otros", "s": "IBEROTEX SOCIEDAD ANONIMA CERRADA"}, {"d": "40743264", "n": "LAMA SEMINARIO, URSULA MILAGROS", "k": "Gabriel Lobo", "s": "MAKRO SUPERMAYORISTA S.A."}, {"d": "43594370", "n": "MAMANI LUQUE, NATALI", "k": "Hugo Solano", "s": "INVERSIONES LENDIPO S.A.C"}, {"d": "43318746", "n": "ESCATE GUEVARA, SARITA SUSANA", "k": "Alberto Urteaga", "s": "CORPORACION REY S.A."}, {"d": "40527407", "n": "VIERA PANTA, IVETTE ELIZABETH", "k": "Hugo Solano", "s": "SODIMAC PERU S.A."}, {"d": "10398913", "n": "CADILLO PINTO, ELIZABETH ALICIA", "k": "Gabriel Lobo", "s": "SUPERMERCADOS PERUANOS S.A"}, {"d": "09643294", "n": "ANGULO RODRIGUEZ, TANIA DEL ROCIO", "k": "Gabriel Lobo", "s": "SUPERMERCADOS PERUANOS S.A"}, {"d": "47906040", "n": "LAURA LOPEZ, CYNTHIA MARIA", "k": "Darío Cedeño", "s": "CENCOSUD RETAIL PERÚ S.A."}, {"d": "47418376", "n": "CERNA CANO, GLORIA VIOLETA", "k": "Gabriel Lobo", "s": "SUPERMERCADOS PERUANOS S.A"}, {"d": "40953402", "n": "GUEVARA REYES, YULISSA VANESSA", "k": "Hugo Solano", "s": "SAGA FALABELLA S A"}, {"d": "44166860", "n": "LOAYZA ZAVALETA, KAREN LIZETH", "k": "Roberto Crisostomo", "s": "FARMACIAS PERUANAS S.A.C."}, {"d": "74975979", "n": "PACHECO GUZMAN, ARLETH ALISSA", "k": "Gabriel Lobo", "s": "SUPERMERCADOS PERUANOS S.A"}, {"d": "04745166", "n": "RODRIGUEZ FLORES, LILIAM JHOANA", "k": "Darío Cedeño", "s": "SUPERMERCADOS PERUANOS S.A"}, {"d": "76597091", "n": "ALVARADO JESUS, MARIELLA FIORELLA", "k": "Gabriel Lobo", "s": "SUPERMERCADOS PERUANOS S.A"}, {"d": "006362252", "n": "MARINO CHACON, MARIA DE LOS ANGELES", "k": "Alberto Urteaga", "s": "INVERSIONES RUBIN S S.A.C."}, {"d": "42588791", "n": "QUIROGA GUEVARA, ROSARIO ERIKA", "k": "Alberto Urteaga", "s": "JUNTA DE PROPIETARIOS EDIFICIO POLO HUNT II"}, {"d": "42240336", "n": "MANIHUARI JIMENEZ, JESSICA", "k": "Hugo Solano", "s": "HIPERMERCADOS TOTTUS S.A."}, {"d": "005651104", "n": "SAMPER LEMUS, SANDRA SOFIA", "k": "Roberto Crisostomo", "s": "HOMECENTERS PERUANOS S.A."}, {"d": "03900147", "n": "PERALTA MORENO, PAULA DEL PILAR", "k": "Darío Cedeño", "s": "SUPERMERCADOS PERUANOS S.A"}, {"d": "70926908", "n": "RIVERA BUSTAMANTE, LILIA", "k": "Gabriel Lobo", "s": "MAKRO SUPERMAYORISTA S.A"}, {"d": "74583302", "n": "SALCEDO CUSIHUAMAN, MARISOL JANETH", "k": "Roberto Crisostomo", "s": "FARMACIAS PERUANAS S.A.C."}, {"d": "40954859", "n": "CASTILLO RODRIGUEZ, MARTHA DEYSI", "k": "Gabriel Lobo", "s": "SUPERMERCADOS PERUANOS S.A"}, {"d": "78569767", "n": "GIRALDO PADILLA, RITA MILEYDI", "k": "Gabriel Lobo", "s": "SUPERMERCADOS PERUANOS S.A"}, {"d": "10076669", "n": "MASIAS MEZA, JENNY EDITH", "k": "Gabriel Lobo", "s": "SUPERMERCADOS PERUANOS S.A"}, {"d": "10808327", "n": "ARENAS LOAYZA, YAZMYN AGNESI", "k": "Alberto Urteaga", "s": "OPERADORA DE SERVICIOS LOGISTICOS S.A.C."}, {"d": "76280746", "n": "GARCIA CAMIZAN, JULIA SARAI", "k": "Darío Cedeño", "s": "CENCOSUD RETAIL PERÚ S.A."}, {"d": "009583555", "n": "MARTINEZ CACERES, MAIDA ALEJANDRA", "k": "Hugo Solano", "s": "SAGA FALABELLA S A"}, {"d": "41780158", "n": "RUFASTO CHAVEZ, GIANINA TERESA", "k": "Roberto Crisostomo", "s": "HOMECENTERS PERUANOS S.A."}, {"d": "46812504", "n": "PEREZ SARCINES, YUZARA JASSMIN", "k": "Hugo Solano", "s": "SODIMAC PERU S.A."}, {"d": "21873984", "n": "ROJAS MAGALLANES, SONIA", "k": "Darío Cedeño", "s": "TEXTIL DEL VALLE SOCIEDAD ANONIMA DE BENEFICI"}, {"d": "40248065", "n": "ESPINOZA PAREDES, GUILLERMINA TERESA", "k": "Gabriel Lobo", "s": "SUPERMERCADOS PERUANOS S.A"}, {"d": "10499346", "n": "ROSADO CARHUANCHO, JUDITH NANCY", "k": "Gabriel Lobo", "s": "SUPERMERCADOS PERUANOS S.A"}, {"d": "73116172", "n": "PALACIOS SEMBRERA, MELINA ASUNCION", "k": "Alberto Urteaga", "s": "CORPORACION MG S.A.C."}, {"d": "40455418", "n": "URURI CUTACALLAPA, MARIA ELENA", "k": "Darío Cedeño", "s": "SAGA FALABELLA S.A."}, {"d": "40822076", "n": "DAVILA RIVAS, YUDI DOMINGA", "k": "Otros", "s": "ISEG PERU S.A.C."}, {"d": "46749963", "n": "USHINAHUA TAPULLIMA, BIANCA LIX", "k": "Gabriel Lobo", "s": "SUPERMERCADOS PERUANOS S.A"}, {"d": "40202398", "n": "MONTESINOS YAMASHIRO, MARIA ELENA BERNARDITA", "k": "Gabriel Lobo", "s": "SUPERMERCADOS PERUANOS S.A"}, {"d": "40269504", "n": "JAVIER FUENTES, MILAGROS JULIA", "k": "Hugo Solano", "s": "SODIMAC PERU S.A."}, {"d": "40185593", "n": "REATEGUI RENGIFO, KATIA", "k": "Hugo Solano", "s": "HIPERMERCADOS TOTTUS S.A."}, {"d": "002696703", "n": "RIVAS -, ALEJANDRA AYMARA", "k": "Alberto Urteaga", "s": "EMUSA PERU S.A.C."}, {"d": "10599791", "n": "MUNOZ ROLLYN, DELIA VERONIKA", "k": "Roberto Crisostomo", "s": "FARMACIAS PERUANAS S.A.C."}, {"d": "002424364", "n": "APONTE VARELA, ANA MARIA", "k": "Hugo Solano", "s": "HIPERMERCADOS TOTTUS S.A."}, {"d": "05380507", "n": "TERRONES LUNA, ERIKA", "k": "Roberto Crisostomo", "s": "TIENDAS PERUANAS S.A."}, {"d": "41585211", "n": "ORE LIMACO, ERIKA VIOLETA", "k": "Darío Cedeño", "s": "CENCOSUD RETAIL PERÚ S.A."}, {"d": "05407789", "n": "PUGA RISCO, ROBERTO OSWALDO", "k": "Hugo Solano", "s": "OPEN PLAZA S.A."}, {"d": "46207020", "n": "CASTILLO LLAJARUNA, PAULA JENIFFER", "k": "Darío Cedeño", "s": "CENCOSUD RETAIL PERÚ S.A."}, {"d": "47499416", "n": "SOSA SILVA, INGRID KATHERINE", "k": "Darío Cedeño", "s": "SUPERMERCADOS PERUANOS S.A"}, {"d": "05372989", "n": "SANCHEZ RUIZ, ISOLINA MERCEDES", "k": "Darío Cedeño", "s": "TORRE 1046 METRO LA MOLINA"}, {"d": "10686949", "n": "SANCHEZ ROJAS DE CAMPOS, YOSHI ELINA", "k": "Gabriel Lobo", "s": "SUPERMERCADOS PERUANOS S.A"}, {"d": "25803020", "n": "CHUCO CARDENAS, JUDITH JESSICA", "k": "Gabriel Lobo", "s": "SUPERMERCADOS PERUANOS S.A"}, {"d": "09719897", "n": "HUAMAN QUINTO, YSABEL MARTINA", "k": "Gabriel Lobo", "s": "SUPERMERCADOS PERUANOS S.A"}, {"d": "09699950", "n": "GUEVARA SAUCEDO, MARIA SILVIA", "k": "Gabriel Lobo", "s": "SUPERMERCADOS PERUANOS S.A"}, {"d": "10627826", "n": "CHANAME GUTIERREZ, EDITH GIOVANNA", "k": "Hugo Solano", "s": "HIPERMERCADOS TOTTUS S.A."}, {"d": "47487121", "n": "SIAPO BURGOS, MILAGRITOS VERONICA", "k": "Darío Cedeño", "s": "CENCOSUD RETAIL PERÚ S.A."}, {"d": "004645005", "n": "PERALTA ORDONEZ, NORMELIS CONSUELO", "k": "Alberto Urteaga", "s": "UNIVERSIDAD DE CIENCIAS Y ARTES DE AMERICA LA"}, {"d": "10521971", "n": "FLORINDEZ PECHE, LUCY EDITH", "k": "Darío Cedeño", "s": "CENCOSUD RETAIL PERÚ S.A."}, {"d": "06805505", "n": "LUJAN QUICHIZ, ERIKA ELIZABETH", "k": "Otros", "s": "ISEG PERU S.A.C."}, {"d": "005609796", "n": "CEGARRA DABOIN, NAYARY FABIOLA", "k": "Alberto Urteaga", "s": "SOLANA COMERCIAL S.A.C."}, {"d": "40502628", "n": "MEDINA DAVALOS, MARITZA MARLENE", "k": "Hugo Solano", "s": "HIPERMERCADOS TOTTUS S.A."}, {"d": "003772045", "n": "ROJAS SANCHEZ, DAMELIS MELISSA", "k": "Alberto Urteaga", "s": "OPERADORA DE SERVICIOS LOGISTICOS S.A.C."}, {"d": "40571198", "n": "SANCHEZ LUNA, FLOR MAGNOLIA", "k": "Hugo Solano", "s": "SAGA FALABELLA S A"}, {"d": "47227071", "n": "ZUMAETA CHAVEZ, NORMA LUZ", "k": "Darío Cedeño", "s": "ISEG PERU S.A.C"}, {"d": "006489450", "n": "SUAREZ LINAREZ, ANGELICA MARIA", "k": "Hugo Solano", "s": "H & M HENNES Y MAURITZ S.A.C"}, {"d": "07489391", "n": "MATUTE ESPINOZA, DENIS SOLEDAD", "k": "Gabriel Lobo", "s": "SUPERMERCADOS PERUANOS S.A"}, {"d": "003597587", "n": "SALAZAR OSORIO, SILVIA PATRICIA", "k": "Hugo Solano", "s": "MAESTRO PERU S.A."}, {"d": "40966069", "n": "GANOZA SALINAS, ERIKA MARJORI", "k": "Darío Cedeño", "s": "SUPERMERCADOS PERUANOS S.A"}, {"d": "70306194", "n": "PLASENCIA MENDOZA, ADRIANA MARYORI", "k": "Darío Cedeño", "s": "HIPERMERCADOS TOTTUS S.A."}, {"d": "75553901", "n": "SANDOVAL HUERTAS, YOCSELINE SILEY", "k": "Darío Cedeño", "s": "HOMECENTERS PERUANOS S.A."}, {"d": "002314601", "n": "AGUILAR RODRIGUEZ, LILIANA DEL CARMEN", "k": "Roberto Crisostomo", "s": "FARMACIAS PERUANAS S.A.C."}, {"d": "40595007", "n": "CHAVEZ NATEROS, YDA EMMA", "k": "Gabriel Lobo", "s": "SUPERMERCADOS PERUANOS S.A"}, {"d": "75857295", "n": "VASQUEZ ZAMORA, PAOLA LISBET", "k": "Darío Cedeño", "s": "CENCOSUD RETAIL PERÚ S.A."}, {"d": "02810835", "n": "MERINO JIMENEZ, MARIA ESTHER", "k": "Hugo Solano", "s": "SODIMAC PERU S.A."}, {"d": "41335416", "n": "ANGULO UGARTE, MARIA DEL CARMEN", "k": "Hugo Solano", "s": "SAGA FALABELLA S A"}, {"d": "07761508", "n": "MINAYA GALVEZ, MARIA", "k": "Darío Cedeño", "s": "CENCOSUD RETAIL PERÚ S.A."}, {"d": "10230259", "n": "LOAIZA VILLAFUERTE, MARLENE", "k": "Gabriel Lobo", "s": "SUPERMERCADOS PERUANOS S.A"}, {"d": "40009742", "n": "OCANA CARRERA, SESIRA LUCY", "k": "Hugo Solano", "s": "LC WAIKIKI RETAIL PE S.A.C"}, {"d": "20999944", "n": "MANRIQUE VILCA, RAQUEL LILIANA", "k": "Gabriel Lobo", "s": "SUPERMERCADOS PERUANOS S.A"}, {"d": "43344194", "n": "IZAGUIRRE HURTADO, JANINA MARITZA", "k": "Darío Cedeño", "s": "SODIMAC PERU S.A."}, {"d": "75623600", "n": "HUAYAMA TINEO, ESMERALDA", "k": "Hugo Solano", "s": "SAGA FALABELLA S A"}, {"d": "47736686", "n": "ROJAS CAINICELA, JHENY KATERINE", "k": "Darío Cedeño", "s": "OPERADORA DE SERVICIOS LOGISTICOS S.A.C."}, {"d": "73665259", "n": "CARDENAS INUMA, VIRGINIA MILADY", "k": "Hugo Solano", "s": "SAGA FALABELLA S A"}, {"d": "46818736", "n": "VARGAS HURTADO, SARITA EMPERATRIZ", "k": "Hugo Solano", "s": "SAGA FALABELLA S A"}, {"d": "43322472", "n": "ESCOBAR NOLASCO, KELLY EVELIN", "k": "Hugo Solano", "s": "SAGA FALABELLA S.A."}, {"d": "44130679", "n": "MAURICIO TAMARA, RUTH DEL PILAR", "k": "Gabriel Lobo", "s": "SUPERMERCADOS PERUANOS S.A"}, {"d": "77004092", "n": "BOCANEGRA SORIA, ANDREA CAROLINA", "k": "Darío Cedeño", "s": "HOMECENTERS PERUANOS S.A."}, {"d": "76808943", "n": "CHAVEZ LEON, ZULLY KATHERINE", "k": "Darío Cedeño", "s": "MAESTRO PERU S.A."}, {"d": "75421554", "n": "MARQUEZ REYES, FRESITA MARILIN", "k": "Darío Cedeño", "s": "SODIMAC PERU S.A."}, {"d": "72895299", "n": "GARCIA PINCHI, ALISON MISHEL", "k": "Darío Cedeño", "s": "SUPERMERCADOS PERUANOS S.A"}, {"d": "43256796", "n": "ALVARADO AVALOS, EVILYN FIORELA", "k": "Darío Cedeño", "s": "SUPERMERCADOS PERUANOS S.A"}, {"d": "45802558", "n": "AROQUIPA CALCINA, VICKY ELISA", "k": "Darío Cedeño", "s": "TIENDAS PERUANAS S.A."}, {"d": "42700791", "n": "MENDOZA PRIETO, NATALI CYNTHIA", "k": "Darío Cedeño", "s": "CENCOSUD RETAIL PERÚ S.A."}, {"d": "71403550", "n": "VERA HUARAYA, ELSA CRISTINA", "k": "Darío Cedeño", "s": "SUPERMERCADOS PERUANOS S.A"}, {"d": "75436262", "n": "GUARNIZ DELGADO, PATRICIA ZULAY", "k": "Otros", "s": "ISEG PERU S.A.C."}, {"d": "76292985", "n": "PISCO RIOS, CARMITA RUBI", "k": "Darío Cedeño", "s": "CENCOSUD RETAIL PERÚ S.A."}, {"d": "77433438", "n": "ATENCIO AGUILAR, ROSA ANGELITA", "k": "Hugo Solano", "s": "HIPERMERCADOS TOTTUS S.A."}, {"d": "74634307", "n": "SACCSARA CUNTO, MAYRA GIANELLA", "k": "Darío Cedeño", "s": "COMPAÑIA FOOD RETAIL S.A.C."}, {"d": "009791706", "n": "GONZALEZ -, NOELIA ANALIA AYELEN", "k": "Hugo Solano", "s": "HIPERMERCADOS TOTTUS S.A."}, {"d": "08168726", "n": "QUINTANA TOMASTO, CATALINA", "k": "Gabriel Lobo", "s": "TORRE 0482 PVEA MIRAFLORES"}, {"d": "46012435", "n": "FLORES SALDARRIAGA, DIANA SOLEDAD", "k": "Darío Cedeño", "s": "HIPERMERCADOS TOTTUS S.A"}, {"d": "47727114", "n": "MATHEY CARRILLO, CLAUDIA GIANNINA", "k": "Roberto Crisostomo", "s": "HOMECENTERS PERUANOS S.A."}, {"d": "60837484", "n": "LOPEZ JIMENEZ, MELINA", "k": "Darío Cedeño", "s": "HOMECENTERS PERUANOS S.A."}, {"d": "42239933", "n": "ARIAS PANEZ, YESICA ROXANA", "k": "Darío Cedeño", "s": "TIENDAS PERUANAS S.A."}, {"d": "71252982", "n": "YLLANES PUJAICO, JUDITH", "k": "Darío Cedeño", "s": "SAGA FALABELLA S A"}, {"d": "41641819", "n": "CARBAJAL MEDINA, AILEEN", "k": "Darío Cedeño", "s": "MAKRO SUPERMAYORISTA S.A"}, {"d": "10322832", "n": "ROBLES CASAFRANCA, ANA MARIA", "k": "Hugo Solano", "s": "HIPERMERCADOS TOTTUS S.A."}, {"d": "47578036", "n": "GABANCHO QUISPE, NERY", "k": "Darío Cedeño", "s": "SODIMAC PERU S.A."}, {"d": "75545323", "n": "CELESTINO DIONICIO, IRIVEL MILENA", "k": "Gabriel Lobo", "s": "SUPERMERCADOS PERUANOS S.A"}, {"d": "46154039", "n": "TRIVENO VALER, RUTH NATALY", "k": "Darío Cedeño", "s": "MAKRO SUPERMAYORISTA S.A"}, {"d": "24002456", "n": "VALDERRAMA CANNY, CARMEN SILVIA", "k": "Darío Cedeño", "s": "LC WAIKIKI RETAIL PE S.A.C"}, {"d": "47344379", "n": "QUISPE RAMOS, ROSA PAULA", "k": "Darío Cedeño", "s": "COMPAÑIA FOOD RETAIL S.A.C."}, {"d": "76388885", "n": "MAMANI YALLERCCO, MILAGROS ALEJANDRA", "k": "Darío Cedeño", "s": "UNIVERSIDAD CATOLICA SAN PABLO"}, {"d": "75999901", "n": "ESPINOZA QUISPE, MAIRA VALERIA", "k": "Darío Cedeño", "s": "CENCOSUD RETAIL PERÚ S.A."}, {"d": "30413538", "n": "SANCHEZ LOZADA, REINA ANGELITA", "k": "Darío Cedeño", "s": "TIENDAS ISHOP PERU S.A.C."}, {"d": "41338725", "n": "PINARREAL LAIME, CARMEN", "k": "Darío Cedeño", "s": "MIFARMA S.A.C."}, {"d": "009535217", "n": "VARGAS ROJAS, TATIANA NATALY", "k": "Darío Cedeño", "s": "ISEG PERU S.A.C."}, {"d": "48364453", "n": "ALCCA PACHO, YENI ANALI", "k": "Darío Cedeño", "s": "SUPERMERCADOS PERUANOS"}, {"d": "61658209", "n": "QUISPE VERONICA, SAYDA", "k": "Darío Cedeño", "s": "MAKRO SUPERMAYORISTA S.A"}, {"d": "41483848", "n": "SANCHEZ SANDOVAL, JESMANI", "k": "Alberto Urteaga", "s": "TEXTIL DEL VALLE SOCIEDAD ANONIMA DE BENEFICI"}, {"d": "43108644", "n": "SALAS VEGA CENTENO, JACKELINE ALCIRA", "k": "Darío Cedeño", "s": "HOMECENTERS PERUANOS S.A."}, {"d": "44901712", "n": "CASTILLO MUNDACA, MONICA GRISELDA", "k": "Hugo Solano", "s": "HIPERMERCADOS TOTTUS S.A."}, {"d": "43574247", "n": "CASTILLO ABAD, MILLY LICEL", "k": "Darío Cedeño", "s": "TIENDAS POR DEPARTAMENTO RIPLEY S.A."}, {"d": "42415805", "n": "REATEGUI RAMIREZ, HILMER IRENE", "k": "Alberto Urteaga", "s": "SOLANA COMERCIAL S.A.C."}, {"d": "42064707", "n": "RANGEL TORRES, SHARONLY BETSY", "k": "Darío Cedeño", "s": "SODIMAC PERU S.A."}, {"d": "74490037", "n": "MARTINEZ COLOMBO, SAHORY ESPERANZA", "k": "Hugo Solano", "s": "MAESTRO PERU S.A."}, {"d": "44895359", "n": "CASTANEDA VIGILIO, MONICA PILAR", "k": "Darío Cedeño", "s": "HOMECENTERS PERUANOS ORIENTE SAC"}, {"d": "43582291", "n": "MONTOYA RAMIREZ, NAKARINA VICTORIA", "k": "Roberto Crisostomo", "s": "FARMACIAS PERUANAS S.A.C."}, {"d": "47330077", "n": "POCH MENDOZA, DANIELA KATHERINE", "k": "Darío Cedeño", "s": "SUPERMERCADOS PERUANOS S.A"}, {"d": "42359119", "n": "CHICLAYO NOLASCO, MARIA ISABEL", "k": "Hugo Solano", "s": "SAGA FALABELLA S A"}, {"d": "44234352", "n": "CASTRO MENDOZA, NANCY CARINA", "k": "Hugo Solano", "s": "HIPERMERCADOS TOTTUS S.A."}, {"d": "60761247", "n": "MIGUEL POMA, MARIA MAGDALENA", "k": "Darío Cedeño", "s": "TIENDAS PERUANAS S.A."}, {"d": "73986865", "n": "SAUCEDO MALCA, SHEILA DANAYARA", "k": "Darío Cedeño", "s": "HIPERMERCADOS TOTTUS S.A"}, {"d": "40278197", "n": "ROBLES QUISPE, LUZ MARINA", "k": "Darío Cedeño", "s": "ISEG PERU S.A.C."}, {"d": "43348479", "n": "PARADA FERNANDEZ, MARISOL EVELYN", "k": "Gabriel Lobo", "s": "SUPERMERCADOS PERUANOS S.A"}, {"d": "42615344", "n": "ROJAS CRUZ, MARIBEL SOLEDAD", "k": "Roberto Crisostomo", "s": "HOMECENTERS PERUANOS S.A."}, {"d": "43088955", "n": "CASTERNOQUE PAREDES, MERCEDES", "k": "Hugo Solano", "s": "SAGA FALABELLA S A"}, {"d": "42293954", "n": "BASTOS TELLO, MARITA", "k": "Darío Cedeño", "s": "CENCOSUD RETAIL PERÚ S.A."}, {"d": "44897209", "n": "HERMES MALAVER, CINTIA LIZ", "k": "Darío Cedeño", "s": "HIPERMERCADOS TOTTUS S.A."}, {"d": "42972832", "n": "VALVERDE HUANSI, KELLY JACKELINE", "k": "Darío Cedeño", "s": "CENCOSUD RETAIL PERÚ S.A."}, {"d": "43916338", "n": "ROSELLO GUTIERREZ, MAGALY", "k": "Alberto Urteaga", "s": "TORRE 0532 SEDE LATINA"}, {"d": "42923795", "n": "RODRIGUEZ HUERTAS, ROSAURA EMERITA", "k": "Gabriel Lobo", "s": "SUPERMERCADOS PERUANOS S.A"}, {"d": "42769119", "n": "MARCA HUASCO, JULIA MARTHA", "k": "Gabriel Lobo", "s": "SUPERMERCADOS PERUANOS S.A"}, {"d": "47882839", "n": "LOPEZ CARLOS, MARGARITA ROSARIO", "k": "Darío Cedeño", "s": "MAKRO SUPERMAYORISTA S.A"}, {"d": "41651844", "n": "MONJA CARDALDA, IRMA JESSICA", "k": "Gabriel Lobo", "s": "MAKRO SUPERMAYORISTA S.A"}, {"d": "44636858", "n": "TRELLES CASTANEDA, ANGELICA MELISSA", "k": "Gabriel Lobo", "s": "SUPERMERCADOS PERUANOS S.A"}, {"d": "42077542", "n": "APARICIO PAZ, JULIANA MERCEDES", "k": "Gabriel Lobo", "s": "SUPERMERCADOS PERUANOS S.A"}, {"d": "44100616", "n": "RAMIREZ RENGIFO, RUTH", "k": "Alberto Urteaga", "s": "SOLANA COMERCIAL S.A.C."}, {"d": "43628615", "n": "ROQUE RODRIGUEZ DE SANTAMARIA, MONICA JACQUELINE", "k": "Darío Cedeño", "s": "SAGA FALABELLA S A"}, {"d": "42003665", "n": "CAPQUIQUE CONDORI, MARGOT", "k": "Darío Cedeño", "s": "HOMECENTERS PERUANOS S.A."}, {"d": "42060266", "n": "FUYO CHIRINOS, KATTY MILAGROS", "k": "Hugo Solano", "s": "SAGA FALABELLA S A"}, {"d": "42968615", "n": "TORRES SILVA, SANDRA", "k": "Gabriel Lobo", "s": "SUPERMERCADOS PERUANOS S.A"}, {"d": "75268538", "n": "OLARTE RAMOS, PAMELIN YOSSI", "k": "Darío Cedeño", "s": "CENCOSUD RETAIL PERÚ S.A."}, {"d": "43219113", "n": "RIVA FLORES, DORA DAMARIS", "k": "Gabriel Lobo", "s": "SUPERMERCADOS PERUANOS S.A"}, {"d": "43248747", "n": "DE LA CRUZ VALVERDE, JENNY MILAGROS", "k": "Darío Cedeño", "s": "HIPERMERCADOS TOTTUS S.A"}, {"d": "43862395", "n": "CAMPOS ANGULO, LISNEY", "k": "Gabriel Lobo", "s": "SUPERMERCADOS PERUANOS S.A"}, {"d": "44422386", "n": "PAREDES CASTRO, PILAR MARIANA", "k": "Darío Cedeño", "s": "CENCOSUD RETAIL PERÚ S.A."}, {"d": "41715331", "n": "VILLALTA QUISPE, ROSARIO JACQUELINE", "k": "Darío Cedeño", "s": "HIPERMERCADOS TOTTUS S.A"}, {"d": "41814390", "n": "ESPINOZA TURPO, MARLENY", "k": "Darío Cedeño", "s": "SODIMAC PERU S.A."}, {"d": "08168378", "n": "ECHEGARAY CARRILLO, TERESA ALEJANDRINA", "k": "Darío Cedeño", "s": "CENCOSUD RETAIL PERÚ S.A."}, {"d": "70948016", "n": "AIQUIPA CANCHI, KAREN DEYSSI", "k": "Darío Cedeño", "s": "PARQUE LAMBRAMANI S.A.C."}, {"d": "43642101", "n": "MORI JARAMILLO, VERONICA PATRICIA", "k": "Roberto Crisostomo", "s": "TIENDAS PERUANAS S.A."}, {"d": "41764079", "n": "SONCO LIMACHI, ELIZABETH", "k": "Darío Cedeño", "s": "SOLANA COMERCIAL S.A.C."}, {"d": "76256864", "n": "CANALES LEON, NARCIA SANDRA", "k": "Darío Cedeño", "s": "HOMECENTERS PERUANOS S.A."}, {"d": "41681066", "n": "FERNANDEZ PASTRANA, JOHANNA LILIBEL", "k": "Darío Cedeño", "s": "SUPERMERCADOS PERUANOS S.A"}, {"d": "44542237", "n": "VENTURA HUARCAYA, YEOVANA CINTHIA", "k": "Gabriel Lobo", "s": "SUPERMERCADOS PERUANOS S.A"}, {"d": "43152914", "n": "TICONA QUIROZ, MIRIAM MAVEL", "k": "Gabriel Lobo", "s": "SUPERMERCADOS PERUANOS S.A"}, {"d": "43916355", "n": "ROSELLO GUTIERREZ, ARACELLI", "k": "Hugo Solano", "s": "SAGA FALABELLA S A"}, {"d": "48626704", "n": "BARBARAN TAPULLIMA, LUZ MILAGROS", "k": "Darío Cedeño", "s": "SCANIA DEL PERU S.A."}, {"d": "09832901", "n": "CARBAJAL CONDORI, LUZ IRENE", "k": "Hugo Solano", "s": "HIPERMERCADOS TOTTUS S.A."}, {"d": "46152516", "n": "GUIZAZOLA PACHAS, ANGELICA IRENE", "k": "Hugo Solano", "s": "SAGA FALABELLA S A"}, {"d": "42062256", "n": "HUAMANI PALOMINO, VERONICA JANETH", "k": "Darío Cedeño", "s": "OPERADORA DE SERVICIOS LOGISTICOS S.A.C."}, {"d": "43727026", "n": "FIGUEROA FIGUEROA, ROSA ANGELA", "k": "Gabriel Lobo", "s": "SUPERMERCADOS PERUANOS S.A"}, {"d": "43857196", "n": "CUTIPA MONTOYA, GIULIANA ISABEL", "k": "Alberto Urteaga", "s": "VFS PERU S.A.C."}, {"d": "44909983", "n": "CARDENAS ZAVALETA, LEIDY KAREN", "k": "Hugo Solano", "s": "MAESTRO PERU S.A."}, {"d": "77498957", "n": "GUTIERREZ CHAMBI, JAKELIN SINDY", "k": "Roberto Crisostomo", "s": "TORRE 0346 PROMART MOQUEGUA"}, {"d": "76051643", "n": "SALAZAR PEREZ, BERTHA ZULEMA", "k": "Hugo Solano", "s": "TIENDAS ARUMA SAC"}, {"d": "41258714", "n": "DEL AGUILA SAQUIRAY, MARIA LUZMILA", "k": "Darío Cedeño", "s": "HOMECENTERS PERUANOS S.A."}, {"d": "44193997", "n": "LUJAN REYES, LILIANA ROSMERY", "k": "Gabriel Lobo", "s": "SUPERMERCADOS PERUANOS S.A"}, {"d": "73248638", "n": "ROJAS MAMANI, YULISSA YAMILE", "k": "Darío Cedeño", "s": "OMNILIFE PERU S.A.C."}, {"d": "42784213", "n": "SERRANO CORNEJO, ELIZABETH", "k": "Gabriel Lobo", "s": "SUPERMERCADOS PERUANOS S.A"}, {"d": "41840733", "n": "GARCIA LABAN, MEDALY", "k": "Hugo Solano", "s": "HIPERMERCADOS TOTTUS S.A."}, {"d": "71552159", "n": "CANCHARI RAMON, MARIAFE SANDRA", "k": "Darío Cedeño", "s": "HOMECENTERS PERUANOS S.A."}, {"d": "25785385", "n": "MINEETI MIRANDA, GIGLIOLA MEIKE", "k": "Darío Cedeño", "s": "CENCOSUD RETAIL PERÚ S.A."}, {"d": "47843265", "n": "GARCIA EUFENIO, MARY AMALIA", "k": "Hugo Solano", "s": "SAGA FALABELLA S A"}, {"d": "42665992", "n": "ALVAREZ FRANCIA, MILAGROS DONNA", "k": "Roberto Crisostomo", "s": "HOMECENTERS PERUANOS S.A."}, {"d": "43747410", "n": "PALOMINO ROJAS, SANDY RUTH", "k": "Gabriel Lobo", "s": "SUPERMERCADOS PERUANOS S.A"}, {"d": "40932814", "n": "UZATEGUI MONTOYA, LUCIA DEL ROSARIO", "k": "Roberto Crisostomo", "s": "FARMACIAS PERUANAS S.A.C."}, {"d": "48170723", "n": "TORRES RODRIGUEZ, VANESSA YANET", "k": "Roberto Crisostomo", "s": "FARMACIAS PERUANAS S.A.C."}, {"d": "41934258", "n": "CHAVEZ SOTELO, CINTHYA DAISY", "k": "Gabriel Lobo", "s": "SUPERMERCADOS PERUANOS S.A"}, {"d": "43094269", "n": "ZAPATA VARGAS, CARMEN BEATRIZ", "k": "Hugo Solano", "s": "HIPERMERCADOS TOTTUS S.A."}, {"d": "44673875", "n": "CARRILLO VASQUEZ, KARINA PATRICIA", "k": "Gabriel Lobo", "s": "SUPERMERCADOS PERUANOS S.A"}, {"d": "44274914", "n": "GUERRERO FERNANDEZ, LIZ MIRAYDA", "k": "Darío Cedeño", "s": "SOLANA COMERCIAL S.A.C."}, {"d": "44511761", "n": "GUTIERREZ APAZA, NATALY VANESSA", "k": "Darío Cedeño", "s": "HOMECENTERS PERUANOS S.A."}, {"d": "43216618", "n": "JANAMPA BARRIOS, GYOVANNA", "k": "Otros", "s": "DIESTRO PERU E.I.R.L."}, {"d": "73706308", "n": "LLALLE GUERRERO, MARYORE ISABEL", "k": "Darío Cedeño", "s": "TIENDAS PERUANAS S.A."}, {"d": "46347701", "n": "GARCIA ROJAS, CINDY LAURA", "k": "Darío Cedeño", "s": "CENCOSUD RETAIL PERÚ S.A."}, {"d": "77920968", "n": "DUARTE TORRES, GINA EDUARDA", "k": "Darío Cedeño", "s": "MAYORSA S.A."}, {"d": "006086363", "n": "GUARARIMA MARQUEZ, MAIRE MILAGROS", "k": "Alberto Urteaga", "s": "JUNTA DE PROPIETARIOS DEL EDIFICIO LIT ONE"}, {"d": "74324615", "n": "DURAN SOLIS, MILAGROS ROSSMERY", "k": "Hugo Solano", "s": "INMUEBLES PANAMERICANA S.A."}, {"d": "73117195", "n": "PINEDO MATIAS, SOFIA MILAGROS", "k": "Gabriel Lobo", "s": "SUPERMERCADOS PERUANOS S.A"}, {"d": "75851249", "n": "GUZMAN CCALLISAYA, GIOVANNI VANESA", "k": "Darío Cedeño", "s": "SUPERMERCADOS PERUANOS S.A"}, {"d": "43620451", "n": "CELADITA ORIZANO, SONIA ROSAURA", "k": "Gabriel Lobo", "s": "SUPERMERCADOS PERUANOS S.A"}, {"d": "43637991", "n": "GUERRERO CORONADO, YESICA PAOLA", "k": "Darío Cedeño", "s": "SUPERMERCADOS PERUANOS S.A"}, {"d": "73316617", "n": "PRADO HENOSTROZA, PAMELA LIZET", "k": "Hugo Solano", "s": "MAESTRO PERU S.A."}, {"d": "44743554", "n": "DE LA CRUZ VIDAL, FANNY YOHANA", "k": "Otros", "s": "ISEG PERU S.A.C."}, {"d": "74722309", "n": "HUMPIRI MAMANI, MARIA ESPERANSA", "k": "Gabriel Lobo", "s": "SUPERMERCADOS PERUANOS S.A"}, {"d": "40549788", "n": "GUICHARD HUASASQUICHE, FIORELLA ALSACIA", "k": "Otros", "s": "ISEG PERU S.A.C."}, {"d": "80254931", "n": "SOLANO ESPINOZA, CLARA JESSICA", "k": "Otros", "s": "ISEG PERU S.A.C."}, {"d": "42500640", "n": "ALDANA ZETA DE DEDIOS, KARY JANET", "k": "Gabriel Lobo", "s": "SUPERMERCADOS PERUANOS S.A"}, {"d": "46402558", "n": "HUAMAN OSCCO, LISBETH DENYS", "k": "Hugo Solano", "s": "HIPERMERCADOS TOTTUS S.A."}, {"d": "005213420", "n": "MARTINEZ MENDEZ, ISABEL CRISTINA", "k": "Otros", "s": "FASHION FITNESS PERU S.A.C."}, {"d": "70980297", "n": "JERONIMO GOMEZ, BRISLY NAYELY", "k": "Gabriel Lobo", "s": "SUPERMERCADOS PERUANOS S.A"}, {"d": "00236484", "n": "ALVAREZ MORALES, JUDITH MAGNOLIA", "k": "Alberto Urteaga", "s": "CSALUD S.A."}, {"d": "74164576", "n": "QUISPE CONTRERAS, HOLLY ROSMERY", "k": "Darío Cedeño", "s": "CENCOSUD RETAIL PERÚ S.A."}, {"d": "73586284", "n": "REYES YAMANI, MELISSA SHESSIRA", "k": "Darío Cedeño", "s": "CENCOSUD RETAIL PERÚ S.A."}, {"d": "71819971", "n": "GOICOCHEA AVILA, FRANKLIN JUNIOR", "k": "Hugo Solano", "s": "STRIP CENTERS DEL PERÚ S.A.C"}, {"d": "72373509", "n": "CHUQUIZUTA MARTINEZ, YASIRA MILAGROS", "k": "Darío Cedeño", "s": "CENCOSUD RETAIL PERÚ S.A."}, {"d": "72875005", "n": "TOLEDO CAPCHA, PATRICIA FLORA", "k": "Gabriel Lobo", "s": "SUPERMERCADOS PERUANOS S.A"}, {"d": "73352471", "n": "CONDORI CCOPACONDORI, DAYANA", "k": "Darío Cedeño", "s": "SUPERMERCADOS PERUANOS"}, {"d": "72816351", "n": "JUAREZ BRICENO, ERICKA CANDY", "k": "Darío Cedeño", "s": "SAGA FALABELLA S A"}, {"d": "74759900", "n": "CORZO JORGE, MILEYDY THALIA ELIANA", "k": "Darío Cedeño", "s": "CENCOSUD RETAIL PERÚ S.A."}, {"d": "71980011", "n": "LAURA GUTIERREZ, MARIA JESUSA", "k": "Darío Cedeño", "s": "FARMACIAS PERUANAS S.A.C."}, {"d": "74390374", "n": "SANCHEZ NUNEZ, GINA BERNARDINA", "k": "Darío Cedeño", "s": "CENCOSUD RETAIL PERÚ S.A."}, {"d": "75011914", "n": "MENDOZA ALZAMORA, KIMBERLY LUCIA", "k": "Otros", "s": "ISEG PERU S.A.C."}, {"d": "73179730", "n": "GOMEZ LIZANA, ANGIE LUCERO", "k": "Darío Cedeño", "s": "OPEN PLAZA S.A."}, {"d": "74459645", "n": "GUIMACK MELENDEZ, ALISON", "k": "Darío Cedeño", "s": "SAGA FALABELLA S A"}, {"d": "74574875", "n": "LOPEZ THACCA, IRMA MELINA", "k": "Alberto Urteaga", "s": "CORPORACION MG S.A.C."}, {"d": "74998894", "n": "LEON PALOMINO, LYLLEN MERCEDES", "k": "Darío Cedeño", "s": "TEXTIL DEL VALLE SOCIEDAD ANONIMA DE BENEFICI"}, {"d": "75001014", "n": "ALCALA POMA, JACKELINE KIARA", "k": "Gabriel Lobo", "s": "SUPERMERCADOS PERUANOS S.A"}, {"d": "74974580", "n": "MILLONES GONZALES, VANESA ALEXANDRA", "k": "Alberto Urteaga", "s": "CORPORACION REMS S.A.C."}, {"d": "44619681", "n": "OBLITAS FRIAS, MARIA GABRIELA", "k": "Otros", "s": "MALL SERVICE S.A.C."}, {"d": "41975396", "n": "IDRUGO MENDOZA, PRESILA", "k": "Darío Cedeño", "s": "CENCOSUD RETAIL PERÚ S.A."}, {"d": "74594386", "n": "ACOSTA PAUCARPURA, JASMIN NICOLLE", "k": "Hugo Solano", "s": "TIENDAS POR DEPARTAMENTO RIPLEY S.A."}, {"d": "74705303", "n": "AREVALO QUISPE, ARACELY ROSARIO", "k": "Roberto Crisostomo", "s": "FARMACIAS PERUANAS S.A.C."}, {"d": "48248934", "n": "RAMOS TOCAS, ANGELINA", "k": "Hugo Solano", "s": "MALL PLAZA INMOBILIARIA S.A."}, {"d": "73460204", "n": "PINEDO CAHUAMARI, VALERIA", "k": "Hugo Solano", "s": "SODIMAC PERU S.A."}, {"d": "74390490", "n": "GALLARDO MORAN, FRANCHESCA ALEXANDRA", "k": "Hugo Solano", "s": "SAGA FALABELLA S A"}, {"d": "71781772", "n": "POZO NAVARRETE, REINA ROSARIO", "k": "Roberto Crisostomo", "s": "TIENDAS PERUANAS S.A."}, {"d": "71813582", "n": "CAMPOVERDE UCEDA, DORA HERLINDA", "k": "Darío Cedeño", "s": "SUPERMERCADOS PERUANOS S.A"}, {"d": "72492749", "n": "LOPEZ ORMENO, ERIKA FERNANDA BETSABETH", "k": "Darío Cedeño", "s": "INMOBILIARIA KANDOO S.A.C"}, {"d": "44869972", "n": "CARCAMO SAJAMI, KAREN", "k": "Darío Cedeño", "s": "PLAZA VEA ORIENTE S.A.C."}, {"d": "08165787", "n": "BEZADA BAZALAR, JULISSA KATHERINE", "k": "Gabriel Lobo", "s": "SUPERMERCADOS PERUANOS S.A"}, {"d": "46469300", "n": "RAMIREZ MENDEZ, ANGELICA MARIA", "k": "Alberto Urteaga", "s": "TEXTIL DEL VALLE SOCIEDAD ANONIMA DE BENEFICI"}, {"d": "74232196", "n": "MORY TIBURCIO, CHARO NOHEMI", "k": "Roberto Crisostomo", "s": "HOMECENTERS PERUANOS S.A."}, {"d": "73605774", "n": "LINO JUSTINIANO, ARACELI MINERBA", "k": "Darío Cedeño", "s": "CENCOSUD RETAIL PERÚ S.A."}, {"d": "74122283", "n": "VARGAS HUAMAN, ELEANA", "k": "Otros", "s": "ISEG PERU S.A.C."}, {"d": "75074015", "n": "VEGA CABALLERO, ALEXANDRA TEODORA", "k": "Darío Cedeño", "s": "CENCOSUD RETAIL PERÚ S.A."}, {"d": "73413172", "n": "ESQUIVEL ALVARADO, BRIGUITTE NICOLE", "k": "Alberto Urteaga", "s": "SOLANA COMERCIAL S.A.C."}, {"d": "74804828", "n": "HUAMANI FLORES, LESLI FIORELA", "k": "Hugo Solano", "s": "SAGA FALABELLA S A"}, {"d": "73780817", "n": "CABINA VASQUEZ, MARBELI", "k": "Darío Cedeño", "s": "CENCOSUD RETAIL PERÚ S.A."}, {"d": "74131421", "n": "MACAHUACHI VARAS, CLAUDIA", "k": "Alberto Urteaga", "s": "OPERADORA DE SERVICIOS LOGISTICOS S.A.C."}, {"d": "47980517", "n": "GUTIERREZ MEDINA, ODALIS MARIA", "k": "Darío Cedeño", "s": "TIENDAS PERUANAS S.A."}, {"d": "46461069", "n": "CALLUPE DIAZ, FABIOLA ERNESTINA", "k": "Gabriel Lobo", "s": "SUPERMERCADOS PERUANOS S.A"}, {"d": "46769513", "n": "CAJAHUANCA TINOCO DE MAMANI, JANET", "k": "Gabriel Lobo", "s": "SUPERMERCADOS PERUANOS S.A"}, {"d": "74069341", "n": "HURTADO VILLALTA, YAJARINA YURNET", "k": "Darío Cedeño", "s": "MAKRO SUPERMAYORISTA S.A"}, {"d": "10653899", "n": "GONZALES SALAZAR, GLADYS JEANETT", "k": "Gabriel Lobo", "s": "SUPERMERCADOS PERUANOS S.A"}, {"d": "21525146", "n": "QUIJANDRIA CARDENAS, MARIA OFELIA DEL PILAR", "k": "Darío Cedeño", "s": "TIENDAS PERUANAS S.A."}, {"d": "74846531", "n": "HERNANDEZ VENTURA, LORENA PATRICIA", "k": "Gabriel Lobo", "s": "SUPERMERCADOS PERUANOS S.A"}, {"d": "75113828", "n": "JULCA LULIQUIS, BLANCA ISENA", "k": "Alberto Urteaga", "s": "OPERADORA DE SERVICIOS LOGISTICOS S.A.C."}, {"d": "74610894", "n": "VARGAS ALDAZABAL, LISSET KATHERINE", "k": "Darío Cedeño", "s": "CENCOSUD RETAIL PERÚ S.A."}, {"d": "74618873", "n": "CAMACHO SALDANA, CINTHIA NAYELY", "k": "Gabriel Lobo", "s": "MAKRO SUPERMAYORISTA S.A"}, {"d": "73867286", "n": "VEGA LEON, MARY LUZ", "k": "Gabriel Lobo", "s": "SUPERMERCADOS PERUANOS S.A"}, {"d": "42501638", "n": "SANDOVAL ZEVALLOS, CARMEN ROSA", "k": "Gabriel Lobo", "s": "SUPERMERCADOS PERUANOS S.A"}, {"d": "45768774", "n": "DOLORES ALONZO, LUCELIA CRISS", "k": "Gabriel Lobo", "s": "SUPERMERCADOS PERUANOS S.A"}, {"d": "40763101", "n": "SEGURA CARMELO, MARIBEL ALICIA", "k": "Darío Cedeño", "s": "SODIMAC PERU S.A."}, {"d": "48209820", "n": "RIVERA CORREA, VALENTINA VICTORIA", "k": "Roberto Crisostomo", "s": "HOMECENTERS PERUANOS S.A."}, {"d": "45223228", "n": "DE LA CRUZ CHACON, EMILY KREIMER", "k": "Hugo Solano", "s": "SODIMAC PERU S.A."}, {"d": "75146771", "n": "QUEVEDO SILVA, GLORIA DEL ROSARIO", "k": "Darío Cedeño", "s": "PLAZA VEA ORIENTE S.A.C."}, {"d": "74502328", "n": "CCOYO MONTANEZ, NATY STEPHANIE", "k": "Darío Cedeño", "s": "TIENDAS PERUANAS S.A."}, {"d": "46393205", "n": "DIAZ ALVAREZ, LIDIA IRIS", "k": "Hugo Solano", "s": "HIPERMERCADOS TOTTUS S.A."}, {"d": "80254720", "n": "RUIZ DIONISIO, ELIZABETH", "k": "Gabriel Lobo", "s": "COMPAÑIA HARD DISCOUNT S.A.C."}, {"d": "43183790", "n": "TAPIA REGALADO, KATIUSKA", "k": "Darío Cedeño", "s": "SUPERMERCADOS PERUANOS S.A"}, {"d": "41520351", "n": "PASTOR QUIROZ, KAREN KELLY", "k": "Gabriel Lobo", "s": "SUPERMERCADOS PERUANOS S.A"}, {"d": "03674183", "n": "JIMENEZ VALDIVIEZO, TERESA PATRICIA", "k": "Hugo Solano", "s": "SODIMAC PERU S.A."}, {"d": "72251436", "n": "HOCES SEVILLANO, ANDREA KORAZU", "k": "Roberto Crisostomo", "s": "FARMACIAS PERUANAS S.A.C."}, {"d": "003635014", "n": "BRICENO FERRER, ARIANA LORAMNY", "k": "Roberto Crisostomo", "s": "HOMECENTERS PERUANOS S.A."}, {"d": "42986914", "n": "VALLADARES RUBINA, JANNET", "k": "Alberto Urteaga", "s": "UNIVERSIDAD DE CIENCIAS Y ARTES DE AMERICA LA"}, {"d": "46098725", "n": "TAYPE GAMERO, ANA ROSA", "k": "Alberto Urteaga", "s": "CORPORACION MG S.A.C."}, {"d": "72841111", "n": "CERNA ZUNIGA, ESTRELLA", "k": "Gabriel Lobo", "s": "SUPERMERCADOS PERUANOS S.A"}, {"d": "77659267", "n": "MORALES ORMENO, AYUMI YADHIRA", "k": "Darío Cedeño", "s": "CENCOSUD RETAIL PERÚ S.A."}, {"d": "48112124", "n": "SANCHEZ APAZA, JACQUELINE LIZBETH", "k": "Darío Cedeño", "s": "CENCOSUD RETAIL PERÚ S.A."}, {"d": "00124294", "n": "MATHEWS PAREDES, MIRTHA MILLIGENT", "k": "Hugo Solano", "s": "INMUEBLES PANAMERICANA S.A."}, {"d": "73610255", "n": "LLANOS LOPEZ, SAMANTHA VALERIA", "k": "Hugo Solano", "s": "SODIMAC PERU S.A."}, {"d": "46898811", "n": "ROCA MOSCOSO, MARIBEL", "k": "Gabriel Lobo", "s": "SUPERMERCADOS PERUANOS S.A"}, {"d": "44083332", "n": "AROCEMENA GONZALES, JHULLIANY MERCY DEL CARME", "k": "Darío Cedeño", "s": "CENCOSUD RETAIL PERÚ S.A."}, {"d": "70942107", "n": "BRAVO URDANIVIA, DANIELA", "k": "Darío Cedeño", "s": "ISEG PERU S.A.C."}, {"d": "40010206", "n": "GUERRA CARCHERI, ELSA JANET", "k": "Darío Cedeño", "s": "HOMECENTERS PERUANOS S.A."}, {"d": "40646811", "n": "RUIZ LIMAYMANTA, LIZBETH MAGALY", "k": "Hugo Solano", "s": "SODIMAC PERU S.A."}, {"d": "43604563", "n": "VERGARA LAURA, NADIR", "k": "Gabriel Lobo", "s": "SUPERMERCADOS PERUANOS S.A"}, {"d": "60698293", "n": "VILLAVICENCIO ANTIQUERA, ALISSON ANNETT", "k": "Darío Cedeño", "s": "CENCOSUD RETAIL PERÚ S.A."}, {"d": "47073813", "n": "ACOSTA FLORES, SHELBY NADIA", "k": "Gabriel Lobo", "s": "SUPERMERCADOS PERUANOS S.A"}, {"d": "42436265", "n": "MEDINA BURGA, MARIVEL", "k": "Hugo Solano", "s": "INVERSIONES LAMBORE S.A.C"}, {"d": "44784837", "n": "TARAZONA FELIX, JENNIFER GRACIELA", "k": "Alberto Urteaga", "s": "IBEROTEX SOCIEDAD ANONIMA CERRADA"}, {"d": "48185749", "n": "COTRINA ORTIZ, KEYDI STAECE", "k": "Gabriel Lobo", "s": "SUPERMERCADOS PERUANOS S.A"}, {"d": "44157347", "n": "MUNOZ RAMOS, ISABEL", "k": "Darío Cedeño", "s": "TIENDAS ARUMA SAC"}, {"d": "45785578", "n": "CORNEJO LEON, GUISSELA SINDIA", "k": "Darío Cedeño", "s": "CENCOSUD RETAIL PERÚ S.A."}, {"d": "72936150", "n": "DELGADILLO AVALOS, MARIA ROSARIO", "k": "Darío Cedeño", "s": "TEXTIL DEL VALLE SOCIEDAD ANONIMA DE BENEFICI"}, {"d": "76594105", "n": "PAREDES HUAMANI, DEBBY SAMANTA", "k": "Hugo Solano", "s": "TIENDAS POR DEPARTAMENTO RIPLEY S.A."}, {"d": "74405461", "n": "COLCHADO RUMI, LOURDES JOSELYN", "k": "Darío Cedeño", "s": "CENCOSUD RETAIL PERÚ S.A."}, {"d": "42117759", "n": "SALDANA RIOS, YURY", "k": "Darío Cedeño", "s": "CENCOSUD RETAIL PERÚ S.A."}, {"d": "75418082", "n": "CERRON ARIAS, LEYSI ESTHER", "k": "Roberto Crisostomo", "s": "FARMACIAS PERUANAS S.A.C."}, {"d": "007427615", "n": "BARRIOS LINAREZ, GENESIS SINAIS", "k": "Gabriel Lobo", "s": "SUPERMERCADOS PERUANOS S.A"}, {"d": "10477257", "n": "DIAZ DIAZ, PERLA IVONNE", "k": "Gabriel Lobo", "s": "MAKRO SUPERMAYORISTA S.A"}, {"d": "25754559", "n": "MENDOZA CHACALTANA, KARLA JANETT", "k": "Darío Cedeño", "s": "SUPERMERCADOS PERUANOS S.A"}, {"d": "74392198", "n": "LOPEZ SERRATO, MARIA DE LOS ANGELES", "k": "Darío Cedeño", "s": "SODIMAC PERU S.A."}, {"d": "72574041", "n": "POMALLANQUE CCASANI, ALEXANDRA", "k": "Darío Cedeño", "s": "CENCOSUD RETAIL PERÚ S.A."}, {"d": "41227047", "n": "SALVADOR LINO, ALICIA ESTHER", "k": "Gabriel Lobo", "s": "SUPERMERCADOS PERUANOS S.A"}, {"d": "42880279", "n": "CERRON INGARUCA, MONICA MIRELLA", "k": "Darío Cedeño", "s": "CENCOSUD RETAIL PERÚ S.A."}, {"d": "42249913", "n": "AYALA SULLON, ANITA MARIA", "k": "Darío Cedeño", "s": "CENCOSUD RETAIL PERÚ S.A."}, {"d": "02805583", "n": "BAYONA REYES, GLADYS JANET", "k": "Otros", "s": "ISEG PERU S.A.C."}, {"d": "62276852", "n": "SALGUERON QUISPE, TANIA", "k": "Gabriel Lobo", "s": "SUPERMERCADOS PERUANOS S.A"}, {"d": "75554981", "n": "ESTRADA TOVAR, ADRIANA ESPERANZA", "k": "Hugo Solano", "s": "SAGA FALABELLA S A"}, {"d": "42161664", "n": "FARFAN SANCHEZ, SILVIA JULIANA", "k": "Gabriel Lobo", "s": "SUPERMERCADOS PERUANOS S.A"}, {"d": "15865473", "n": "GARAVITO LOAYZA, ROSA ANA", "k": "Darío Cedeño", "s": "OPERADORA DE SERVICIOS LOGISTICOS S.A.C."}, {"d": "10593853", "n": "DUENAS ALVINO, CARMEN ROSSANA", "k": "Hugo Solano", "s": "SAGA FALABELLA S A"}, {"d": "40577083", "n": "BENAVIDES GONZALES, MONICA IBETTE", "k": "Darío Cedeño", "s": "CENCOSUD RETAIL PERÚ S.A."}, {"d": "25803851", "n": "CHICHE HUAMAN, ROSA MARIBEL", "k": "Hugo Solano", "s": "MULTIMERCADOS ZONALES S.A.C."}, {"d": "44982494", "n": "CAPCHA MEZA, MARIA TERESA", "k": "Hugo Solano", "s": "MALL PLAZA INMOBILIARIA S.A."}, {"d": "40508587", "n": "FIESTAS MORALES, SILVIA DEL ROSARIO", "k": "Darío Cedeño", "s": "SUPERMERCADOS PERUANOS S.A"}, {"d": "71305339", "n": "ECHAVARRIA JAVE, GLORIA TAIS", "k": "Hugo Solano", "s": "SERCENCO S.A.C"}, {"d": "76560980", "n": "LLAMO BUSTAMANTE, ANGHIE MAYHELI", "k": "Darío Cedeño", "s": "HOMECENTERS PERUANOS ORIENTE SAC"}, {"d": "41629483", "n": "VILCHEZ LIZA, JULIANA JULISSA", "k": "Darío Cedeño", "s": "SUPERMERCADOS PERUANOS S.A"}, {"d": "77723862", "n": "SANCHEZ MUNOZ, ERIKA", "k": "Roberto Crisostomo", "s": "HOMECENTERS PERUANOS S.A."}, {"d": "77537118", "n": "RODRIGUEZ OLIVA, LUCERITO KATERINE", "k": "Otros", "s": "ISEG PERU S.A.C."}, {"d": "77806551", "n": "ANASTACIO IPANAQUE, INGRID LIZBET", "k": "Alberto Urteaga", "s": "OPERADORA DE SERVICIOS LOGISTICOS S.A.C."}, {"d": "76132967", "n": "VILLAVICENCIO LUNA, LUZ ROSARIO", "k": "Otros", "s": "ISEG PERU S.A.C."}, {"d": "76139175", "n": "MACEDA BRANDAN, SOLAINZ WILA", "k": "Hugo Solano", "s": "TIENDAS POR DEPARTAMENTO RIPLEY S.A."}, {"d": "75354507", "n": "GONZALES MARTINEZ, MILAGROS KATHERINE", "k": "Hugo Solano", "s": "SAGA FALABELLA S A"}, {"d": "75664229", "n": "SANTIAGO HERMOSILLA, GREYSI MARIBEL", "k": "Roberto Crisostomo", "s": "TIENDAS PERUANAS S.A."}, {"d": "76182368", "n": "MARTINEZ SILVA, MONICA ALEXANDRA", "k": "Roberto Crisostomo", "s": "FARMACIAS PERUANAS S.A.C."}, {"d": "75750950", "n": "ORDINOLA SOSA, TATIANA LIZBET", "k": "Roberto Crisostomo", "s": "FARMACIAS PERUANAS S.A.C."}, {"d": "76020100", "n": "FIESTAS PINTADO, ANGELA ARACELY", "k": "Roberto Crisostomo", "s": "TIENDAS PERUANAS S.A."}, {"d": "80375725", "n": "CRUZ SULCA, LESLIE ALEXANDRA", "k": "Hugo Solano", "s": "TIENDAS POR DEPARTAMENTO RIPLEY S.A."}, {"d": "76643712", "n": "GLORIA NIEVES, MELANY ARIANA", "k": "Roberto Crisostomo", "s": "FARMACIAS PERUANAS S.A.C."}, {"d": "76834106", "n": "PEREZ VASQUEZ, KEILA", "k": "Gabriel Lobo", "s": "SUPERMERCADOS PERUANOS S.A"}, {"d": "75862182", "n": "MANYA CAMACHO, YHOANA LIZETH", "k": "Darío Cedeño", "s": "SUPERMERCADOS PERUANOS S.A"}, {"d": "80242357", "n": "ZAPATA MAGUINA, ERIKA ELSA", "k": "Gabriel Lobo", "s": "SUPERMERCADOS PERUANOS S.A"}, {"d": "76878255", "n": "IPUSHIMA MARIN, ESTEFANY", "k": "Darío Cedeño", "s": "HOMECENTERS PERUANOS ORIENTE SAC"}, {"d": "76017995", "n": "GARCIA BUITRON, CATALINA", "k": "Gabriel Lobo", "s": "SUPERMERCADOS PERUANOS S.A"}, {"d": "75372721", "n": "CADENA BAUTISTA, CLARISSA ALEXANDRA", "k": "Otros", "s": "TORRE 0181 RASH CHORRILLOS"}, {"d": "46704957", "n": "SOSA CERNAQUE, DEYSI GLADYS", "k": "Darío Cedeño", "s": "OPERADORA DE SERVICIOS LOGISTICOS S.A.C."}, {"d": "76966152", "n": "CALDERON GOYCOCHEA, PRINCESA ISABEL", "k": "Gabriel Lobo", "s": "SUPERMERCADOS PERUANOS S.A"}, {"d": "76155093", "n": "CELIS LEON, CARMEN ROSA", "k": "Darío Cedeño", "s": "SUPERMERCADOS PERUANOS S.A"}, {"d": "76881667", "n": "MENESES SALAZAR, CINTHYA FABIOLA", "k": "Otros", "s": "TIENDAS ARUMA SAC"}, {"d": "76493348", "n": "MEMBRILLO CASTILLO, NICOL GENESIS", "k": "Gabriel Lobo", "s": "SUPERMERCADOS PERUANOS S.A"}, {"d": "77810794", "n": "ESPINOZA ALBORNOZ, NOIMI", "k": "Hugo Solano", "s": "SODIMAC PERU S.A."}, {"d": "80421339", "n": "MEDINA QUEVEDO, FLOR DE MARIA", "k": "Darío Cedeño", "s": "SUPERMERCADOS PERUANOS S.A"}, {"d": "78885627", "n": "CANDELA TORBELLINO, DAIANA JESSIC", "k": "Roberto Crisostomo", "s": "HOMECENTERS PERUANOS S.A."}, {"d": "76801967", "n": "CULQUI LLOVERA, JOSELIN STEFANI", "k": "Darío Cedeño", "s": "TIENDAS PERUANAS S.A."}, {"d": "77104719", "n": "JIMENEZ MONZON, SHELSEA ANDARA", "k": "Alberto Urteaga", "s": "CSALUD S.A."}, {"d": "47920253", "n": "LUPU SAAVEDRA, JAHAIRA JULITZA", "k": "Darío Cedeño", "s": "HOMECENTERS PERUANOS S.A."}, {"d": "77337134", "n": "RUGEL COVENAS, ANYELA ABIGAIL", "k": "Darío Cedeño", "s": "ISEG PERU S.A.C."}, {"d": "77804988", "n": "SANCHEZ YAYCATE, EMMA LUZ", "k": "Alberto Urteaga", "s": "PRODUCTOS PARAISO DEL PERU S.A.C."}, {"d": "76940683", "n": "SEGURA SALVADOR, ROXANA ESTHER", "k": "Alberto Urteaga", "s": "CORPORACION MG S.A.C."}, {"d": "42128983", "n": "GARCIA CHUQUIZUTA, MARGARITA", "k": "Darío Cedeño", "s": "SODIMAC PERU S.A."}, {"d": "76767545", "n": "REANO DAZA, LUCERO DANAE", "k": "Alberto Urteaga", "s": "H & M HENNES Y MAURITZ S.A.C"}, {"d": "75975728", "n": "GUERRERO CRISPIN, ROSA ANDREA", "k": "Roberto Crisostomo", "s": "MIFARMA S.A.C."}, {"d": "47413066", "n": "RAMIREZ FIGUEROA, ROCIO LIZET", "k": "Gabriel Lobo", "s": "TORRE 3168 MASS AUDITORES"}, {"d": "10162419", "n": "MASIAS ASTOCONDOR, YESSICA ELIZABETH", "k": "Darío Cedeño", "s": "CENCOSUD RETAIL PERÚ S.A."}, {"d": "10082229", "n": "SANTIVANEZ SOLORZANO, MARA", "k": "Gabriel Lobo", "s": "SUPERMERCADOS PERUANOS S.A"}, {"d": "75228120", "n": "MENDOZA RAMOS, ESTEFANY LUCIA", "k": "Alberto Urteaga", "s": "OPERADORA DE SERVICIOS LOGISTICOS S.A.C."}, {"d": "76729689", "n": "BRUNO MENDOZA, ONELIA NOELIA", "k": "Otros", "s": "ISEG PERU S.A.C."}, {"d": "18134216", "n": "PANTA REQUEJO, MONICA DEL PILAR", "k": "Darío Cedeño", "s": "CENCOSUD RETAIL PERÚ S.A."}, {"d": "46643267", "n": "TUESTA MARTINEZ, NARA", "k": "Gabriel Lobo", "s": "SUPERMERCADOS PERUANOS S.A"}, {"d": "46316348", "n": "CHAMOCHUMBI RAMOS, VERONICA ALICIA", "k": "Hugo Solano", "s": "TIENDAS POR DEPARTAMENTO RIPLEY S.A."}, {"d": "48989546", "n": "TORRES CHAVEZ, CARMEN EPIFANIA DE FATIMA", "k": "Gabriel Lobo", "s": "SUPERMERCADOS PERUANOS S.A"}, {"d": "47213789", "n": "CAVERO QUISPE, MIRIAM ROCIO", "k": "Darío Cedeño", "s": "HIPERMERCADOS TOTTUS S.A."}, {"d": "73439815", "n": "QUISPE CHUCCHUCAN, ADRIANA LIZET", "k": "Hugo Solano", "s": "HIPERMERCADOS TOTTUS S.A."}, {"d": "45372287", "n": "NEYRA GUEVARA, GERALDINE CRIS", "k": "Hugo Solano", "s": "HIPERMERCADOS TOTTUS S.A."}, {"d": "76466145", "n": "RAMIREZ HUERTA, MARIA ELIZABETH", "k": "Gabriel Lobo", "s": "SUPERMERCADOS PERUANOS S.A"}, {"d": "73829750", "n": "PEDREGAL DIAZ, LUZ MILAGROS", "k": "Hugo Solano", "s": "MAESTRO PERU S.A."}, {"d": "47096717", "n": "MATIAS RAMOS, EBELYS YULISSA", "k": "Otros", "s": "RASH PERU S.A.C."}, {"d": "48927130", "n": "LOPEZ QUINTANA, NATALI MIRELLA", "k": "Darío Cedeño", "s": "HOMECENTERS PERUANOS S.A."}, {"d": "77915504", "n": "RAMIREZ VASQUEZ, KORAIMA ELENA", "k": "Darío Cedeño", "s": "SUPERMERCADOS PERUANOS S.A"}, {"d": "80380689", "n": "CONTRERAS ENCISO, GISELLA PAULINA", "k": "Hugo Solano", "s": "SAGA FALABELLA S A"}, {"d": "80950064", "n": "MONTES GUARDIA, LEYDI MILENA ROSA", "k": "Otros", "s": "ISEG PERU S.A.C."}, {"d": "75517161", "n": "GUZMAN CHAVESTA, SARITA LUSDINA", "k": "Darío Cedeño", "s": "TIENDAS POR DEPARTAMENTO RIPLEY S.A."}, {"d": "76406377", "n": "CARO MELGAREJO, SUSAN BEATRIZ", "k": "Hugo Solano", "s": "INMOBILIARIA COSTA NUEVA S.A.C"}, {"d": "60944373", "n": "DAVILA DIAZ, ANDREA VALERIA", "k": "Hugo Solano", "s": "SAGA FALABELLA S A"}, {"d": "42176517", "n": "APAZA MAMANI, NILA YESMIT", "k": "Darío Cedeño", "s": "MAKRO SUPERMAYORISTA S.A"}, {"d": "76549935", "n": "HUANCHI AHUANARI, DOLIBETH", "k": "Hugo Solano", "s": "TIENDAS POR DEPARTAMENTO RIPLEY S.A."}, {"d": "47562922", "n": "SEMINARIO MEJIA, NELLY LEA KOROMOTO", "k": "Gabriel Lobo", "s": "SUPERMERCADOS PERUANOS S.A"}, {"d": "25861440", "n": "HUANCA ALARCON, MARGARITA ROSA", "k": "Roberto Crisostomo", "s": "FARMACIAS PERUANAS S.A.C."}, {"d": "10633603", "n": "ALCALDE GONZA, CARMEN GAVINA", "k": "Roberto Crisostomo", "s": "HOMECENTERS PERUANOS S.A."}, {"d": "71526021", "n": "MALLQUI OROSCO, CAROLINA", "k": "Hugo Solano", "s": "MAESTRO PERU S.A."}, {"d": "47433544", "n": "DE LA CRUZ HUAMAN, MILAGROS DEL ROSARIO", "k": "Roberto Crisostomo", "s": "TIENDAS PERUANAS S.A."}, {"d": "47681808", "n": "MOLINA SARAVIA, JOSELYN SUSANA", "k": "Hugo Solano", "s": "PARQUE LAMBRAMANI S.A.C."}, {"d": "46511028", "n": "LOPEZ GUTARRA, NINOSCA TABITA", "k": "Alberto Urteaga", "s": "UNIVERSIDAD DE CIENCIAS Y ARTES DE AMERICA LA"}, {"d": "77229859", "n": "RODRIGUEZ RODRIGUEZ, MILAGROS ESTEFANIA", "k": "Hugo Solano", "s": "TIENDAS POR DEPARTAMENTO RIPLEY S.A."}, {"d": "46659306", "n": "MORI RABANAL, MARLITH", "k": "Roberto Crisostomo", "s": "HOMECENTERS PERUANOS S.A."}, {"d": "47638022", "n": "GARCIA ROSALES, YOHANA YSABEL", "k": "Hugo Solano", "s": "SODIMAC PERU S.A."}, {"d": "42504164", "n": "AYALA ESPINOZA, DELIA MERY", "k": "Hugo Solano", "s": "SAGA FALABELLA S A"}, {"d": "70366789", "n": "QUICANA HUALLPA, CINTIA NATI", "k": "Darío Cedeño", "s": "SUPERMERCADOS PERUANOS S.A"}, {"d": "09693064", "n": "PILAR NUEVO, CARMEN ROSA", "k": "Roberto Crisostomo", "s": "HOMECENTERS PERUANOS S.A."}, {"d": "44500777", "n": "DEL AGUILA GUERRA DE HUAYHUA, LUZ LIZETH", "k": "Roberto Crisostomo", "s": "HOMECENTERS PERUANOS S.A."}, {"d": "44804780", "n": "ZAPANA CHAMBI, LOURDES MAGALY", "k": "Roberto Crisostomo", "s": "HOMECENTERS PERUANOS S.A."}, {"d": "44288536", "n": "BERROCAL ASCENCIO, MARILYN PAOLA", "k": "Roberto Crisostomo", "s": "HOMECENTERS PERUANOS S.A."}, {"d": "08162279", "n": "GOYCOCHEA NAUCAPOMA, YSABEL LEIVY", "k": "Gabriel Lobo", "s": "SUPERMERCADOS PERUANOS S.A"}, {"d": "40348454", "n": "BARRIOS LAZARTE, WENDY", "k": "Gabriel Lobo", "s": "SEGURIDAD FÍSICA LIMA"}, {"d": "43102029", "n": "BANCHON AREVALO, SOFHIA CELESTE", "k": "Gestión Humana", "s": "SHIELD"}, {"d": "75475375", "n": "DELGADO PEREZ, YANINA LIZETH", "k": "Backoffice", "s": "SHIELD"}, {"d": "41444702", "n": "MACHACUAY ZARATE, ROXANA JUDITH", "k": "Backoffice", "s": "SHIELD"}, {"d": "40178528", "n": "ATAIPUMA DURAND, LUZ MARLENE", "k": "Darío Cedeño", "s": "SEGURIDAD FÍSICA LIMA"}, {"d": "03508745", "n": "SIAPO BURGOS, ROXANA", "k": "Gestión Humana", "s": "GESTIÓN DE PERSONAL"}, {"d": "76234048", "n": "HERRERA HERRERA, YAEL PATRICIA ALEXANDRA", "k": "Gestión Humana", "s": "DESARROLLO Y CULTURA"}, {"d": "47745366", "n": "ESPINOZA SARMIENTO, CARLA ISABEL", "k": "Darío Cedeño", "s": "SEGURIDAD FÍSICA TRUJILLO"}, {"d": "21871990", "n": "CARBAJAL ROBLES, CARMEN ROSA", "k": "Backoffice", "s": "FACTURACIÓN Y COBRANZAS"}, {"d": "42444583", "n": "MORON HUAMAN, KARIN MAGALY", "k": "Darío Cedeño", "s": "SEGURIDAD FÍSICA CHICLAYO"}, {"d": "70933351", "n": "SANTOS MACURIANO, ARIANNA CAMILA", "k": "Backoffice", "s": "CONTROL DE GESTIÓN"}, {"d": "75286398", "n": "TAPULLIMA SALVIATI, VANESSA ANTUANED", "k": "Gestión Humana", "s": "DESARROLLO Y CULTURA"}, {"d": "73046760", "n": "LUJAN ULLOA, DIANA MILAGROS", "k": "Gestión Humana", "s": "DESARROLLO Y CULTURA"}, {"d": "43214862", "n": "GONZALES CHUQUIPIONDO, MARIA ISARELA", "k": "Gestión Humana", "s": "GESTIÓN DE PERSONAL"}, {"d": "45533122", "n": "MANRIQUE SUCLUPE, SAYRA JANETH", "k": "Gestión Humana", "s": "GESTIÓN DE PERSONAL"}, {"d": "44628472", "n": "GALVEZ PENA, KAREN LISSET", "k": "Gestión Humana", "s": "GESTIÓN DE PERSONAL"}, {"d": "76829910", "n": "CAMAYO MONTERO, JACKELINE", "k": "Gestión Humana", "s": "GESTIÓN DE PERSONAL"}, {"d": "76350779", "n": "SANCHEZ LEYVA, ALEXANDRA JAHAIRA", "k": "Darío Cedeño", "s": "SEGURIDAD FÍSICA LIMA"}, {"d": "45489506", "n": "GASTELU GRANDEZ, BEATRIZ FORTUNATA", "k": "Backoffice", "s": "CGO - CENTRAL DE GESTION OPERATIVA"}, {"d": "003910074", "n": "GARCIA PEREZ, MARIA FERNANDA", "k": "Gabriel Lobo", "s": "SUPERMERCADOS PERUANOS S.A"}, {"d": "002653514", "n": "NEGRON NEGRON, DAYANA JOSEFINA", "k": "Darío Cedeño", "s": "SEGURIDAD FÍSICA LIMA"}, {"d": "77037804", "n": "FALCONI NIETO, VILMA MERCEDES", "k": "Backoffice", "s": "CONTROL DE GESTIÓN"}, {"d": "47499853", "n": "VIVANCO MALLMA, STEFANNY YANYNA", "k": "Backoffice", "s": "FACTURACIÓN Y COBRANZAS"}, {"d": "75715157", "n": "ANTON SERNAQUE, IRLY GIOVANA", "k": "Darío Cedeño", "s": "SEGURIDAD FÍSICA PIURA"}, {"d": "46428007", "n": "LLASA VALVERDE, MARIA ANGELICA", "k": "Gestión Humana", "s": "DESARROLLO Y CULTURA"}, {"d": "72652687", "n": "AGUADO HERNANDEZ, ISABEL ALONDRA", "k": "Gestión Humana", "s": "GESTIÓN DE PERSONAL"}, {"d": "41601957", "n": "MARQUEZ RENGIFO, IRENE NOHELLY", "k": "Gestión Humana", "s": "BIENESTAR SOCIAL"}, {"d": "71695269", "n": "DURAN SANTI, LUZCLARITA MILAGROS", "k": "Gestión Humana", "s": "GESTIÓN DE PERSONAL"}, {"d": "74049145", "n": "CURAY BELTRAN, CAMILA BERENICE", "k": "Gestión Humana", "s": "GESTIÓN DE PERSONAL"}, {"d": "40718688", "n": "AMORETTI VILLANUEVA, FIORELLA", "k": "Gestión Humana", "s": "GESTIÓN DE PERSONAL"}, {"d": "23928182", "n": "PUMACCAJIA GUTIERREZ, NANCY", "k": "Gestión Humana", "s": "GESTIÓN DE PERSONAL"}, {"d": "09713482", "n": "RODRIGUEZ CRUZ, LIDIA", "k": "Gestión Humana", "s": "DESARROLLO Y CULTURA"}, {"d": "45136167", "n": "OLIVERA CAMONES, LIDIA ELENA", "k": "Backoffice", "s": "FACTURACIÓN Y COBRANZAS"}, {"d": "1716210297", "n": "Catalina del Rocío Torres Torres", "k": "Gestión Humana", "s": "GESTIÓN DE PERSONAL"}, {"d": "74717097", "n": "CALLE GUZMAN, YENIFER LIZ", "k": "Gestión Humana", "s": "ATRACCIÓN DE TALENTO"}, {"d": "72199223", "n": "VELASQUEZ AMADO, AUREA MARIEL", "k": "Gestión Humana", "s": "ATRACCIÓN DE TALENTO"}, {"d": "003847862", "n": "RODULFO RODULFO, YSABEL CRISTINA", "k": "Gestión Humana", "s": "CORPORATIVO"}, {"d": "06807328", "n": "IRIARTE ZEGARRA, NORMA ELIZABETH", "k": "Gestión Humana", "s": "DESARROLLO Y CULTURA"}, {"d": "44788405", "n": "HORMASA CAMACHO, PATRICIA ELENA DEL ROSARIO", "k": "Backoffice", "s": "SHIELD"}, {"d": "49039459", "n": "BERNALES ORTUNO, ANDREINA DEL CARMEN", "k": "Gestión Humana", "s": "ATRACCIÓN DE TALENTO"}, {"d": "71319890", "n": "PEREZ BUSTAMANTE, MARYCARMEN", "k": "Darío Cedeño", "s": "SEGURIDAD FÍSICA CHICLAYO"}, {"d": "42880901", "n": "ROJAS QUISPE, SONIA JHANET", "k": "Backoffice", "s": "SHIELD"}, {"d": "007027030", "n": "ALVARADO RODRIGUEZ, SHARON SARAY", "k": "Hugo Solano", "s": "INMUEBLES PANAMERICANA S.A."}, {"d": "47664598", "n": "TELLO VEGA, MELANIE GERALDINE", "k": "Gestión Humana", "s": "ATRACCIÓN DE TALENTO"}, {"d": "77279598", "n": "MELO FERNANDEZ, KATHERINE CAMILA", "k": "Backoffice", "s": "HUB MARKETING Y COMUNICACIÓN INTERNA"}, {"d": "72660212", "n": "CASTRO ROQUE, STEFANNY GERALDINE", "k": "Gestión Humana", "s": "GESTIÓN DE PERSONAL"}, {"d": "75951002", "n": "CAMPUZANO CANEPA, ALESSANDRA AYLLIEN", "k": "Backoffice", "s": "CGO - CENTRAL DE GESTION OPERATIVA"}, {"d": "76287353", "n": "ESPINOZA HUARACA, JESSENIA KATHERINE", "k": "Gestión Humana", "s": "SHIELD"}, {"d": "73150882", "n": "MACALUPU CORDOVA, KATHERINE PIERINA", "k": "Gestión Humana", "s": "ATRACCIÓN DE TALENTO"}, {"d": "1761140266", "n": "Yuli Andrea Serna", "k": "Otros", "s": "PROMART"}, {"d": "73257279", "n": "IZQUIERDO CARRASCO, SHUSUA SOFIA", "k": "Backoffice", "s": "SEGURIDAD ELECTRÓNICA"}, {"d": "1105481111", "n": "Teresa Anayeli Robles chamorro", "k": "Otros", "s": "PROMART"}, {"d": "72079261", "n": "GONGORA SUAREZ, GILMA VERONICA", "k": "Darío Cedeño", "s": "SEGURIDAD FÍSICA IQUITOS"}, {"d": "73254830", "n": "RENGIFO ZEVALLOS, VANESSA FRISEL", "k": "Gestión Humana", "s": "ATRACCIÓN DE TALENTO"}, {"d": "72740968", "n": "RUESTA SANCHEZ, ANGELICA ESPERANZA", "k": "Darío Cedeño", "s": "SEGURIDAD FÍSICA ICA"}, {"d": "46389649", "n": "CHUNGA ALBURQUEQUE, LAURA VANESSA", "k": "Hugo Solano", "s": "HIPERMERCADOS TOTTUS S.A."}, {"d": "41519724", "n": "CALUA VILLASANTE, YRIS PAOLA", "k": "Hugo Solano", "s": "SAGA FALABELLA S A"}, {"d": "78057990", "n": "MATOS FERNANDEZ, MARIA EMILIA", "k": "Otros", "s": "ISEG PERU S.A.C."}, {"d": "09955935", "n": "EGUZQUIZA TARAZONA DE PORRAS, VERONICA EDITH", "k": "Gabriel Lobo", "s": "TORRE 0742 VIVANDA BENAVIDES"}, {"d": "46289481", "n": "TOCAS MIRES, AKEMY ARASHI", "k": "Gabriel Lobo", "s": "SUPERMERCADOS PERUANOS S.A"}, {"d": "42796056", "n": "GOMEZ BURGA, WENDY ESTHER", "k": "Gestión Humana", "s": "DESARROLLO Y CULTURA"}];
+const SESSIONS = [{"id": "S0", "label": "CLASE INTRO", "tema": "Clase Introductoria", "fecha": "Lunes 24 de agosto", "dateISO": "2026-08-24", "deadlineISO": "2026-08-26"}, {"id": "S1", "label": "SES 1", "tema": "Comunicación Asertiva", "fecha": "27 de agosto", "dateISO": "2026-08-27", "deadlineISO": "2026-08-27"}, {"id": "S2", "label": "SES 2", "tema": "Autoconocimiento", "fecha": "10 de septiembre", "dateISO": "2026-09-10", "deadlineISO": "2026-09-10"}, {"id": "S3", "label": "SES 3", "tema": "Confianza", "fecha": "24 de septiembre", "dateISO": "2026-09-24", "deadlineISO": "2026-09-24"}, {"id": "S4", "label": "SES 4", "tema": "Liderazgo", "fecha": "1 de octubre", "dateISO": "2026-10-01", "deadlineISO": "2026-10-01"}, {"id": "S5", "label": "SES 5", "tema": "Negociación", "fecha": "6 de octubre", "dateISO": "2026-10-06", "deadlineISO": "2026-10-06"}, {"id": "S6", "label": "SES 6", "tema": "Marca Personal", "fecha": "15 de octubre", "dateISO": "2026-10-15", "deadlineISO": "2026-10-15"}];
+const OWNER_USER = "vanessa.tapullima@pe.isegcorp.com";
+const OWNER_PASS = "vanessa200497*";
+
+function todayISO(){
+  const d = new Date();
+  const y = d.getFullYear(), m = String(d.getMonth()+1).padStart(2,'0'), day = String(d.getDate()).padStart(2,'0');
+  return `${y}-${m}-${day}`;
+}
+const TODAY = todayISO();
+
+function sessionState(s){
+  if(TODAY < s.dateISO) return 'future';
+  if(TODAY > s.deadlineISO) return 'closed';
+  return 'open';
+}
+
+let selectedSession = null;
+let selectedParticipant = null;
+
+function renderClock(){
+  const now = new Date();
+  document.getElementById('clock').textContent = now.toLocaleString('es-PE', {dateStyle:'full', timeStyle:'short'});
+}
+renderClock(); setInterval(renderClock, 30000);
+
+function renderSessions(){
+  const grid = document.getElementById('sessionsGrid');
+  grid.innerHTML = '';
+  SESSIONS.forEach(s=>{
+    const state = sessionState(s);
+    const btn = document.createElement('button');
+    btn.className = 'sess-btn' + (selectedSession && selectedSession.id===s.id ? ' active':'');
+    btn.disabled = state !== 'open';
+    let tagHtml = state==='open' ? '<span class="tag open">Disponible</span>'
+      : state==='future' ? '<span class="tag future">Aún no disponible</span>'
+      : '<span class="tag closed">Cerrada</span>';
+    btn.innerHTML = `<div class="t">${s.label} - ${s.tema}</div><div class="f">${s.fecha}</div>${tagHtml}`;
+    btn.addEventListener('click', ()=>{
+      if(state!=='open') return;
+      selectedSession = s;
+      selectedParticipant = null;
+      document.getElementById('resultBox').classList.remove('show');
+      document.getElementById('newRegBox').classList.remove('show');
+      document.getElementById('statusMsg').classList.remove('show');
+      document.getElementById('dniInput').value='';
+      renderSessions();
+      updateApartado2Visibility();
+    });
+    grid.appendChild(btn);
+  });
+}
+
+function updateApartado2Visibility(){
+  const noMsg = document.getElementById('noSessionMsg');
+  const box = document.getElementById('searchBox');
+  if(selectedSession){
+    noMsg.classList.remove('show');
+    box.style.display = 'block';
+  } else {
+    noMsg.classList.add('show');
+    box.style.display = 'none';
+  }
+}
+renderSessions();
+updateApartado2Visibility();
+
+function normDni(v){ return String(v||'').trim().replace(/^0+/,'') || '0'; }
+
+function findLocalParticipant(dni){
+  const clean = String(dni||'').trim();
+  return PARTICIPANTS.find(p=>{
+    const pd = p.d.trim();
+    return pd === clean || normDni(pd) === normDni(clean);
+  });
+}
+
+document.getElementById('buscarBtn').addEventListener('click', doSearch);
+document.getElementById('dniInput').addEventListener('keydown', e=>{ if(e.key==='Enter') doSearch(); });
+
+function showStatus(type, text){
+  const el = document.getElementById('statusMsg');
+  el.className = 'msg show ' + type;
+  el.textContent = text;
+}
+
+async function doSearch(){
+  const dni = document.getElementById('dniInput').value.trim();
+  document.getElementById('statusMsg').classList.remove('show');
+  document.getElementById('resultBox').classList.remove('show');
+  document.getElementById('newRegBox').classList.remove('show');
+  if(!dni){ return; }
+
+  let p = findLocalParticipant(dni);
+
+  // si no está en la lista original, buscar si ya se auto-registró antes
+  if(!p){
+    try{
+      const r = await window.storage.get(`newpart_${dni}`, true);
+      if(r && r.value){
+        const extra = JSON.parse(r.value);
+        p = { d: dni, n: extra.n, k: 'Registro nuevo', s: extra.tel ? `Registro nuevo · Cel: ${extra.tel}` : 'Registro nuevo' };
+      }
+    }catch(e){ /* no existe, sigue como no encontrado */ }
+  }
+
+  if(!p){
+    document.getElementById('newDni').value = dni;
+    document.getElementById('newNombre').value='';
+    document.getElementById('newCelular').value='';
+    document.getElementById('newRegBox').classList.add('show');
+    return;
+  }
+
+  selectedParticipant = p;
+  document.getElementById('resName').textContent = p.n;
+  document.getElementById('resSede').textContent = p.s;
+  document.getElementById('resultBox').classList.add('show');
+
+  try{
+    const existing = await window.storage.get(`att_${p.d}`, true);
+    const sessions = existing && existing.value ? JSON.parse(existing.value) : {};
+    if(sessions[selectedSession.id]){
+      showStatus('warn', `Ya registraste tu asistencia a "${selectedSession.label} - ${selectedSession.tema}" el ${new Date(sessions[selectedSession.id].ts).toLocaleString('es-PE')}.`);
+      document.getElementById('confirmBtn').disabled = true;
+    } else {
+      document.getElementById('confirmBtn').disabled = false;
+    }
+  }catch(e){
+    document.getElementById('confirmBtn').disabled = false;
+  }
+}
+
+document.getElementById('confirmBtn').addEventListener('click', async ()=>{
+  if(!selectedParticipant || !selectedSession) return;
+  const btn = document.getElementById('confirmBtn');
+  btn.disabled = true;
+  try{
+    await marcarAsistencia(selectedParticipant.d, selectedSession.id);
+    showStatus('ok', `¡Listo, ${selectedParticipant.n.split(',')[0]}! Tu asistencia a "${selectedSession.label} - ${selectedSession.tema}" quedó registrada.`);
+  }catch(e){
+    showStatus('err', 'Hubo un problema al guardar tu asistencia. Intenta nuevamente.');
+    btn.disabled = false;
+  }
+});
+
+async function marcarAsistencia(dni, sessionId){
+  let sessions = {};
+  try{
+    const existing = await window.storage.get(`att_${dni}`, true);
+    if(existing && existing.value) sessions = JSON.parse(existing.value);
+  }catch(e){ /* no previous record */ }
+  sessions[sessionId] = { ts: new Date().toISOString() };
+  await window.storage.set(`att_${dni}`, JSON.stringify(sessions), true);
+}
+
+// registro de personas nuevas (no estaban en la data original)
+document.getElementById('newRegBtn').addEventListener('click', async ()=>{
+  const dni = document.getElementById('newDni').value.trim();
+  const nombre = document.getElementById('newNombre').value.trim();
+  const celular = document.getElementById('newCelular').value.trim();
+  document.getElementById('statusMsg').classList.remove('show');
+
+  if(!dni || !nombre || !celular){
+    showStatus('err', 'Completa tu DNI, nombre completo y celular para registrarte.');
+    return;
+  }
+  const btn = document.getElementById('newRegBtn');
+  btn.disabled = true;
+  try{
+    await window.storage.set(`newpart_${dni}`, JSON.stringify({ n: nombre, tel: celular, addedAt: new Date().toISOString() }), true);
+    await marcarAsistencia(dni, selectedSession.id);
+    document.getElementById('newRegBox').classList.remove('show');
+    showStatus('ok', `¡Listo, ${nombre.split(',')[0]}! Quedaste registrada en el programa y tu asistencia a "${selectedSession.label} - ${selectedSession.tema}" fue confirmada.`);
+  }catch(e){
+    showStatus('err', 'Hubo un problema al guardarte. Intenta nuevamente.');
+  }
+  btn.disabled = false;
+});
+
+// ---------------- OWNER PANEL ----------------
+document.getElementById('loginBtn').addEventListener('click', ()=>{
+  const u = document.getElementById('ownerUser').value.trim();
+  const pw = document.getElementById('ownerPass').value.trim();
+  document.getElementById('loginErr').classList.remove('show');
+  if(u===OWNER_USER && pw===OWNER_PASS){
+    document.getElementById('loginSection').style.display='none';
+    document.getElementById('adminSection').style.display='block';
+    loadAdminData();
+  } else {
+    document.getElementById('loginErr').classList.add('show');
+  }
+});
+
+async function loadAdminData(){
+  document.getElementById('adminLoading').style.display='block';
+  document.getElementById('adminContent').style.display='none';
+
+  const records = {};
+  const chunkSize = 15;
+  for(let i=0;i<PARTICIPANTS.length;i+=chunkSize){
+    const chunk = PARTICIPANTS.slice(i, i+chunkSize);
+    await Promise.all(chunk.map(async p=>{
+      try{
+        const r = await window.storage.get(`att_${p.d}`, true);
+        records[p.d] = r && r.value ? JSON.parse(r.value) : {};
+      }catch(e){
+        records[p.d] = {};
+      }
+    }));
+  }
+
+  // cargar personas registradas nuevas (no estaban en la data original)
+  let extraParticipants = [];
+  try{
+    const listResult = await window.storage.list('newpart_', true);
+    const keys = (listResult && listResult.keys) ? listResult.keys : [];
+    await Promise.all(keys.map(async key=>{
+      try{
+        const r = await window.storage.get(key, true);
+        if(r && r.value){
+          const extra = JSON.parse(r.value);
+          const dni = key.replace('newpart_','');
+          extraParticipants.push({ d: dni, n: extra.n, k: 'Registro nuevo', s: extra.tel ? `Cel: ${extra.tel}` : '' });
+          try{
+            const ar = await window.storage.get(`att_${dni}`, true);
+            records[dni] = ar && ar.value ? JSON.parse(ar.value) : {};
+          }catch(e){ records[dni] = {}; }
+        }
+      }catch(e){ /* ignore broken record */ }
+    }));
+  }catch(e){ /* sin registros nuevos aún */ }
+
+  const allPeople = PARTICIPANTS.concat(extraParticipants);
+
+  // KAM summary
+  const kamCounts = {};
+  allPeople.forEach(p=>{
+    const rec = records[p.d] || {};
+    const confirmedCount = Object.keys(rec).length;
+    if(confirmedCount>0){
+      kamCounts[p.k] = (kamCounts[p.k]||0) + 1;
+    }
+  });
+  const kamDiv = document.getElementById('kamSummary');
+  kamDiv.innerHTML = '';
+  const totalConfirmed = Object.values(kamCounts).reduce((a,b)=>a+b,0);
+  const totalBox = document.createElement('div');
+  totalBox.className='kam-box';
+  totalBox.innerHTML = `<div class="n">${totalConfirmed}</div><div class="l">Total con asistencia registrada</div>`;
+  kamDiv.appendChild(totalBox);
+  if(extraParticipants.length>0){
+    const box = document.createElement('div');
+    box.className='kam-box';
+    box.innerHTML = `<div class="n">${extraParticipants.length}</div><div class="l">Personas nuevas (no en data original)</div>`;
+    kamDiv.appendChild(box);
+  }
+  Object.entries(kamCounts).sort((a,b)=>b[1]-a[1]).forEach(([k,v])=>{
+    const box = document.createElement('div');
+    box.className='kam-box';
+    box.innerHTML = `<div class="n">${v}</div><div class="l">${k}</div>`;
+    kamDiv.appendChild(box);
+  });
+
+  // Full table
+  const thead = document.querySelector('#fullTable thead');
+  const tbody = document.querySelector('#fullTable tbody');
+  thead.innerHTML = `<tr><th>DNI</th><th>Nombre</th><th>KAM</th><th>Sede</th>${SESSIONS.map(s=>`<th>${s.label}</th>`).join('')}</tr>`;
+  tbody.innerHTML = allPeople.map(p=>{
+    const rec = records[p.d] || {};
+    const cells = SESSIONS.map(s=>{
+      const ok = !!rec[s.id];
+      return `<td class="${ok?'ok':'no'}">${ok?'ASISTIO':'FALTA'}</td>`;
+    }).join('');
+    return `<tr><td>${p.d}</td><td>${p.n}</td><td>${p.k}</td><td>${p.s}</td>${cells}</tr>`;
+  }).join('');
+
+  window._adminRecords = records;
+  window._adminAllPeople = allPeople;
+  document.getElementById('adminLoading').style.display='none';
+  document.getElementById('adminContent').style.display='block';
+}
+
+document.getElementById('refreshBtn').addEventListener('click', loadAdminData);
+
+document.getElementById('exportBtn').addEventListener('click', ()=>{
+  const records = window._adminRecords || {};
+  const allPeople = window._adminAllPeople || PARTICIPANTS;
+  const hdr = ['DNI','NOMBRE','KAM','TIENDA / CORPORACION', ...SESSIONS.map(s=>`${s.label} - ${s.tema} (${s.fecha})`)];
+  const rows = allPeople.map(p=>{
+    const rec = records[p.d] || {};
+    return [p.d, p.n, p.k, p.s, ...SESSIONS.map(s=> rec[s.id] ? 'ASISTIO' : 'FALTA')];
+  });
+  const csv = [hdr, ...rows].map(r=>r.map(c=>`"${String(c||'').replace(/"/g,'""')}"`).join(',')).join('\n');
+  const blob = new Blob(['\uFEFF'+csv], {type:'text/csv;charset=utf-8'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'EllaLidera_Asistencia.csv';
+  a.click();
+});
+</script>
+</body>
+</html>
